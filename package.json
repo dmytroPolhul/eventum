@@ -1,0 +1,31 @@
+{
+  "name": "hyper-logger",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/dmytroPolhul/hyper-logger#readme",
+  "bugs": {
+    "url": "https://github.com/dmytroPolhul/hyper-logger/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dmytroPolhul/hyper-logger.git"
+  },
+  "license": "MIT",
+  "author": "Dmytro Polhul",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "install": "npm run build",
+    "build": "napi build --release",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "file-uri-to-path": "^1.0.0"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^2.18.4",
+    "bindings": "^1.5.0",
+    "node-addon-api": "^8.3.1"
+  }
+}
