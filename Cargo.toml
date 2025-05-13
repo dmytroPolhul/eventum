@@ -3,4 +3,15 @@ name = "hyper-logger"
 version = "0.1.0"
 edition = "2021"
 
+build = "build.rs"
+
+[build-dependencies]
+napi-build = "2"
+
 [dependencies]
+napi = { version = "2", features = ["napi6"] }
+napi-derive = "2"
+
+[lib]
+name = "hyper_logger"
+crate-type = ["cdylib"]
