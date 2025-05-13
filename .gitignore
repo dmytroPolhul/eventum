@@ -20,3 +20,5 @@ node_modules/
 # Added by cargo
 
 /target
+.idea
+.vscode
