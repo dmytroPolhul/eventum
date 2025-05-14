@@ -1,6 +1,8 @@
-import { log, debug, warn, error } from "./index.js";
+import { debug, warn, error, fatal, trace, info } from "./index.js";
 
-log("Log from Node.js via Rust!");
+trace("Trace from Node.js via Rust!");
 debug("Debug from Node.js via Rust!");
+info("Log from Node.js via Rust!");
 warn("Warn from Node.js via Rust!");
 error("Error from Node.js via Rust!");
+fatal("Crit from Node.js via Rust!");
