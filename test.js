@@ -1,3 +1,6 @@
-const { log } = require("./index");
+import { log, debug, warn, error } from "./index.js";
 
-log("Hello from Node.js via Rust!");
+log("Log from Node.js via Rust!");
+debug("Debug from Node.js via Rust!");
+warn("Warn from Node.js via Rust!");
+error("Error from Node.js via Rust!");
