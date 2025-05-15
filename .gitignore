@@ -18,6 +18,7 @@ node_modules/
 #.idea/
 
 # Added by cargo
+.zed
 
 /target
 index.d.ts
