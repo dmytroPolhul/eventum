@@ -1,7 +1,9 @@
 use napi_derive::napi;
+use serde::Serialize;
+use serde_json::Value;
 
 #[napi]
-#[derive(Debug, PartialEq, PartialOrd, Eq, Ord)]
+#[derive(Debug, PartialEq, PartialOrd, Eq, Ord, Serialize)]
 pub enum LogLevel {
     Trace,
     Debug,
@@ -19,9 +21,10 @@ pub enum OutputFormat {
 }
 
 #[napi(object)]
+#[derive(Serialize)]
 pub struct LogEntry {
     pub level: LogLevel,
-    pub message: String,
+    pub message: Value,
 }
 
 #[napi(object)]

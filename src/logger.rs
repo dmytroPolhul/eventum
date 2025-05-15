@@ -1,6 +1,7 @@
 use napi_derive::napi;
 use std::sync::RwLock;
 use colored::Colorize;
+use serde_json::Value;
 
 use crate::config::LOGGER_CONFIG;
 use crate::types::{LogEntry, LogLevel, LoggerConfig, OutputFormat};
@@ -32,27 +33,33 @@ pub fn log(entry: LogEntry) {
 
     match config.output_format {
         OutputFormat::Text => {
+            let text = match &entry.message {
+                            Value::String(s) => s.clone(),
+                            other => serde_json::to_string_pretty(other).unwrap_or_else(|_| "<Invalid JSON>".into()),
+                        };
+            
             if config.color_output {
                 match entry.level {
-                    LogLevel::Trace => println!("[{:?}] {}", entry.level, entry.message.yellow()),
-                    LogLevel::Debug => println!("[{:?}] {}", entry.level, entry.message.purple()),
-                    LogLevel::Info => println!("[{:?}] {}", entry.level, entry.message.green()),
-                    LogLevel::Warn => println!("[{:?}] {}", entry.level, entry.message.bold().green()),
-                    LogLevel::Error => println!("[{:?}] {}", entry.level, entry.message.red()),
-                    LogLevel::Fatal => println!("[{:?}] {}", entry.level, entry.message.bold().red())
+                    LogLevel::Trace => println!("[{:?}] {}", entry.level, text.yellow()),
+                    LogLevel::Debug => println!("[{:?}] {}", entry.level, text.purple()),
+                    LogLevel::Info => println!("[{:?}] {}", entry.level, text.white()),
+                    LogLevel::Warn => println!("[{:?}] {}", entry.level, text.green()),
+                    LogLevel::Error => println!("[{:?}] {}", entry.level, text.red()),
+                    LogLevel::Fatal => println!("[{:?}] {}", entry.level, text.bold().red())
                 }
             } else {
                 println!("[{:?}] {}", entry.level, entry.message);
             }
         }
         OutputFormat::Json => {
-            unimplemented!()
+            let json = serde_json::to_string(&entry).unwrap();
+            println!("{}", json);
         }
     }
 }
 
 #[napi]
-pub fn trace(message: String) {
+pub fn trace(message: Value) {
     log(LogEntry {
         level: LogLevel::Trace,
         message,
@@ -60,7 +67,7 @@ pub fn trace(message: String) {
 }
 
 #[napi]
-pub fn info(message: String) {
+pub fn info(message: Value) {
     log(LogEntry {
         level: LogLevel::Info,
         message,
@@ -68,7 +75,7 @@ pub fn info(message: String) {
 }
 
 #[napi]
-pub fn debug(message: String) {
+pub fn debug(message: Value) {
     log(LogEntry {
         level: LogLevel::Debug,
         message,
@@ -76,7 +83,7 @@ pub fn debug(message: String) {
 }
 
 #[napi]
-pub fn warn(message: String) {
+pub fn warn(message: Value) {
     log(LogEntry {
         level: LogLevel::Warn,
         message,
@@ -84,7 +91,7 @@ pub fn warn(message: String) {
 }
 
 #[napi]
-pub fn error(message: String) {
+pub fn error(message: Value) {
     log(LogEntry {
         level: LogLevel::Error,
         message,
@@ -92,7 +99,7 @@ pub fn error(message: String) {
 }
 
 #[napi]
-pub fn fatal(message: String) {
+pub fn fatal(message: Value) {
     log(LogEntry {
         level: LogLevel::Fatal,
         message,
