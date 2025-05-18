@@ -1,8 +1,18 @@
 import * as logger from "./index.js";
 
 logger.setConfig({
-  colorOutput: false,
-  outputFormat: 1,
+  prod: {
+    output: {
+      color: true,
+      format: 0,
+    },
+    fields: {
+      time: true,
+      //pid: true,
+      msg: true,
+      level: true
+    }
+  }
 });
 
 const startUsage = process.cpuUsage();
@@ -11,7 +21,7 @@ const startTime = Date.now();
 
 for (let i = 0; i <= 1000000; i++) {
   logger.debug({id: `${i}`, name: 'John'});
-  //logger.warn(`Node.js logs via Rust ${i}`);
+  logger.warn(`Node.js logs via Rust ${i}`);
 }
 
 const endUsage = process.cpuUsage(startUsage);

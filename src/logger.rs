@@ -1,68 +1,113 @@
-use napi_derive::napi;
-use std::sync::RwLock;
+use chrono::Utc;
 use colored::Colorize;
+use napi_derive::napi;
 use serde_json::Value;
+use std::option::Option;
+use std::sync::RwLock;
 
 use crate::config::LOGGER_CONFIG;
-use crate::types::{LogEntry, LogLevel, LoggerConfig, OutputFormat};
+use crate::types::{
+    EnvConfig, FieldsConfig, LogEntry, LogLevel, LoggerConfig, OutputFormat, SerializableLogEntry,
+};
+use crate::utils::text_from_message;
 
 #[napi]
-pub fn set_config(config: LoggerConfig) {
-    let cell = LOGGER_CONFIG.get_or_init(|| RwLock::new(config.clone()));
-    let mut current = cell.write().unwrap();
-    *current = config;
+pub fn set_config(config: LoggerConfig) -> Option<EnvConfig> {
+    let selected_config = match std::env::var("NODE_ENV").as_deref() {
+        Ok("production") => config.prod.clone(),
+        _ => config.dev.clone().or(config.prod.clone()),
+    };
+
+    if let Some(mut env_config) = selected_config {
+        if env_config.fields.is_none() {
+            env_config.fields = Some(FieldsConfig::default());
+        }
+
+        let cell = LOGGER_CONFIG.get_or_init(|| RwLock::new(env_config.clone()));
+        let mut current = cell.write().unwrap();
+        *current = env_config.clone();
+
+        Some(env_config)
+    } else {
+        eprintln!("[Logger] No valid logger config for current NODE_ENV. Logger disabled.");
+        None
+    }
 }
 
 #[napi]
-pub fn get_config() -> LoggerConfig {
-    let cell = LOGGER_CONFIG.get_or_init(|| {
-        RwLock::new(LoggerConfig {
-            color_output: false,
-            output_format: OutputFormat::Text,
-        })
-    });
-
-    let current = cell.read().unwrap();
-    current.clone()
-}
-
-#[napi]
-pub fn log(entry: LogEntry) {
-    let config_cell = LOGGER_CONFIG.get().expect("Logger not configured");
+fn log(entry: LogEntry) {
+    let Some(config_cell) = LOGGER_CONFIG.get() else {
+        return;
+    };
     let config = config_cell.read().unwrap();
 
-    match config.output_format {
+    match config.output.format {
         OutputFormat::Text => {
-            let text = match &entry.message {
-                            Value::String(s) => s.clone(),
-                            other => serde_json::to_string_pretty(other).unwrap_or_else(|_| "<Invalid JSON>".into()),
-                        };
-            
-            if config.color_output {
-                match entry.level {
-                    LogLevel::Trace => println!("[{:?}] {}", entry.level, text.yellow()),
-                    LogLevel::Debug => println!("[{:?}] {}", entry.level, text.purple()),
-                    LogLevel::Info => println!("[{:?}] {}", entry.level, text.white()),
-                    LogLevel::Warn => println!("[{:?}] {}", entry.level, text.green()),
-                    LogLevel::Error => println!("[{:?}] {}", entry.level, text.red()),
-                    LogLevel::Fatal => println!("[{:?}] {}", entry.level, text.bold().red())
-                }
-            } else {
-                println!("[{:?}] {}", entry.level, entry.message);
-            }
+            format_log_text(&entry, &config);
         }
         OutputFormat::Json => {
-            let json = serde_json::to_string(&entry).unwrap();
-            println!("{}", json);
+            format_log_json(&entry, &config);
         }
     }
+}
+
+fn format_log_text(entry: &LogEntry, config: &EnvConfig) {
+    let fields = config.fields.clone().unwrap_or_default();
+
+    let mut output = String::new();
+
+    if fields.level.unwrap_or(false) {
+        output.push_str(&format!("[{:?}]", entry.level));
+    }
+
+    if fields.pid.unwrap_or(false) {
+        output.push_str(&format!(" [PID:{}]", entry.pid));
+    }
+
+    if fields.time.unwrap_or(false) {
+        output.push_str(&format!(" [{}]", entry.time));
+    }
+
+    if fields.msg.unwrap_or(true) {
+        let text = text_from_message(&entry.msg);
+        output.push_str(&format!(" {}", text));
+    }
+
+    if config.output.color {
+        match entry.level {
+            LogLevel::Trace => println!("{}", output.yellow()),
+            LogLevel::Debug => println!("{}", output.purple()),
+            LogLevel::Info => println!("{}", output.white()),
+            LogLevel::Warn => println!("{}", output.green()),
+            LogLevel::Error => println!("{}", output.red()),
+            LogLevel::Fatal => println!("{}", output.bold().red()),
+        }
+    } else {
+        println!("[{:?}] {}", entry.level, entry.msg)
+    }
+}
+
+fn format_log_json(entry: &LogEntry, config: &EnvConfig) {
+    let fields = config.fields.clone().unwrap_or_default();
+
+    let filtered_entry = SerializableLogEntry {
+        level: fields.level.unwrap_or(false).then_some(entry.level.clone()),
+        msg: fields.msg.unwrap_or(false).then_some(entry.msg.clone()),
+        time: fields.time.unwrap_or(false).then_some(entry.time),
+        pid: fields.pid.unwrap_or(false).then_some(entry.pid),
+    };
+
+    let json = serde_json::to_string(&filtered_entry).unwrap();
+    println!("{}", json)
 }
 
 #[napi]
 pub fn trace(message: Value) {
     log(LogEntry {
         level: LogLevel::Trace,
-        message,
+        time: Utc::now().timestamp_millis(),
+        pid: std::process::id(),
+        msg: message,
     });
 }
 
@@ -70,7 +115,9 @@ pub fn trace(message: Value) {
 pub fn info(message: Value) {
     log(LogEntry {
         level: LogLevel::Info,
-        message,
+        time: Utc::now().timestamp_millis(),
+        pid: std::process::id(),
+        msg: message,
     });
 }
 
@@ -78,7 +125,9 @@ pub fn info(message: Value) {
 pub fn debug(message: Value) {
     log(LogEntry {
         level: LogLevel::Debug,
-        message,
+        time: Utc::now().timestamp_millis(),
+        pid: std::process::id(),
+        msg: message,
     });
 }
 
@@ -86,7 +135,9 @@ pub fn debug(message: Value) {
 pub fn warn(message: Value) {
     log(LogEntry {
         level: LogLevel::Warn,
-        message,
+        time: Utc::now().timestamp_millis(),
+        pid: std::process::id(),
+        msg: message,
     });
 }
 
@@ -94,7 +145,9 @@ pub fn warn(message: Value) {
 pub fn error(message: Value) {
     log(LogEntry {
         level: LogLevel::Error,
-        message,
+        time: Utc::now().timestamp_millis(),
+        pid: std::process::id(),
+        msg: message,
     });
 }
 
@@ -102,6 +155,8 @@ pub fn error(message: Value) {
 pub fn fatal(message: Value) {
     log(LogEntry {
         level: LogLevel::Fatal,
-        message,
+        time: Utc::now().timestamp_millis(),
+        pid: std::process::id(),
+        msg: message,
     });
 }
