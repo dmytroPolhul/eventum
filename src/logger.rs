@@ -2,12 +2,14 @@ use chrono::Utc;
 use colored::Colorize;
 use napi_derive::napi;
 use serde_json::Value;
+use std::io::Write;
 use std::option::Option;
 use std::sync::RwLock;
 
 use crate::config::LOGGER_CONFIG;
 use crate::types::{
-    EnvConfig, FieldsConfig, LogEntry, LogLevel, LoggerConfig, OutputFormat, SerializableLogEntry,
+    EnvConfig, FieldsConfig, LogEntry, LogLevel, LoggerConfig, OutputFormat, OutputTarget,
+    SerializableLogEntry,
 };
 use crate::utils::text_from_message;
 
@@ -73,18 +75,24 @@ fn format_log_text(entry: &LogEntry, config: &EnvConfig) {
         output.push_str(&format!(" {}", text));
     }
 
-    if config.output.color {
+    let final_output = if config.output.color {
         match entry.level {
-            LogLevel::Trace => println!("{}", output.yellow()),
-            LogLevel::Debug => println!("{}", output.purple()),
-            LogLevel::Info => println!("{}", output.white()),
-            LogLevel::Warn => println!("{}", output.green()),
-            LogLevel::Error => println!("{}", output.red()),
-            LogLevel::Fatal => println!("{}", output.bold().red()),
+            LogLevel::Trace => output.yellow().to_string(),
+            LogLevel::Debug => output.purple().to_string(),
+            LogLevel::Info => output.white().to_string(),
+            LogLevel::Warn => output.green().to_string(),
+            LogLevel::Error => output.red().to_string(),
+            LogLevel::Fatal => output.bold().red().to_string(),
         }
     } else {
-        println!("[{:?}] {}", entry.level, entry.msg)
-    }
+        output
+    };
+
+    write_output(
+        &config.output.target,
+        &config.output.file_path,
+        &final_output,
+    );
 }
 
 fn format_log_json(entry: &LogEntry, config: &EnvConfig) {
@@ -97,8 +105,32 @@ fn format_log_json(entry: &LogEntry, config: &EnvConfig) {
         pid: fields.pid.unwrap_or(false).then_some(entry.pid),
     };
 
-    let json = serde_json::to_string(&filtered_entry).unwrap();
-    println!("{}", json)
+    if let Ok(json) = serde_json::to_string(&filtered_entry) {
+        write_output(&config.output.target, &config.output.file_path, &json);
+    }
+}
+
+fn write_output(target: &OutputTarget, file_path: &Option<String>, message: &str) {
+    match target {
+        OutputTarget::Stdout => println!("{}", message),
+        OutputTarget::Stderr => eprintln!("{}", message),
+        OutputTarget::File => {
+            if let Some(path) = file_path {
+                if let Ok(mut file) = std::fs::OpenOptions::new()
+                    .create(true)
+                    .append(true)
+                    .open(path)
+                {
+                    let _ = writeln!(file, "{}", message);
+                } else {
+                    eprintln!("[Logger] Failed to write to log file: {}", path);
+                }
+            } else {
+                eprintln!("[Logger] No file path provided for log output.");
+            }
+        }
+        OutputTarget::Null => { /* do nothing */ }
+    }
 }
 
 #[napi]

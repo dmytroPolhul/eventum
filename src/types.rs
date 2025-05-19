@@ -14,6 +14,14 @@ pub enum LogLevel {
 }
 
 #[napi]
+pub enum OutputTarget {
+    Stdout,
+    Stderr,
+    File,
+    Null,
+}
+
+#[napi]
 #[derive(Debug, PartialEq, PartialOrd, Eq, Ord)]
 pub enum OutputFormat {
     Text,
@@ -34,6 +42,8 @@ pub struct LogEntry {
 pub struct OutputConfig {
     pub color: bool,
     pub format: OutputFormat,
+    pub target: OutputTarget,
+    pub file_path: Option<String>,
 }
 
 #[napi(object)]

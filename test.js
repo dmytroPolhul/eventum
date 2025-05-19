@@ -5,10 +5,12 @@ logger.setConfig({
     output: {
       color: true,
       format: 0,
+      target: 1,
+      filePath: './test.log'
     },
     fields: {
       time: true,
-      //pid: true,
+      pid: true,
       msg: true,
       level: true
     }
