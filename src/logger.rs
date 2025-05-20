@@ -89,8 +89,7 @@ fn format_log_text(entry: &LogEntry, config: &EnvConfig) {
     };
 
     write_output(
-        &config.output.target,
-        &config.output.file_path,
+        &config,
         &final_output,
     );
 }
@@ -106,16 +105,22 @@ fn format_log_json(entry: &LogEntry, config: &EnvConfig) {
     };
 
     if let Ok(json) = serde_json::to_string(&filtered_entry) {
-        write_output(&config.output.target, &config.output.file_path, &json);
+        write_output(&config, &json);
     }
 }
 
-fn write_output(target: &OutputTarget, file_path: &Option<String>, message: &str) {
-    match target {
+fn write_output(config: &EnvConfig, message: &str) {
+    match config.output.target {
         OutputTarget::Stdout => println!("{}", message),
         OutputTarget::Stderr => eprintln!("{}", message),
         OutputTarget::File => {
-            if let Some(path) = file_path {
+            if let Some(path) = &config.output.file_path {
+                let rotate = should_rotate(&path, &config);
+
+                if rotate {
+                    rotate_logs(&path, &config);
+                }
+
                 if let Ok(mut file) = std::fs::OpenOptions::new()
                     .create(true)
                     .append(true)
@@ -132,6 +137,38 @@ fn write_output(target: &OutputTarget, file_path: &Option<String>, message: &str
         OutputTarget::Null => { /* do nothing */ }
     }
 }
+
+fn should_rotate(path: &str, config: &EnvConfig) -> bool {
+    let max_size = config.output.max_file_size.unwrap_or(10 * 1024 * 1024); // 10 MB
+
+    if let Ok(metadata) = std::fs::metadata(path) {
+        if max_size >= 0 {
+            return metadata.len() >= max_size as u64;
+        }
+    }
+
+    false
+}
+
+fn rotate_logs(path: &str, config: &EnvConfig) {
+    let max_backups = config.output.max_backups.unwrap_or(3);
+
+    for i in (1..=max_backups).rev() {
+        let src = format!("{}.{}", path, i - 1);
+        let dst = format!("{}.{}", path, i );
+
+        let src_actual = if i == 1 {
+            path.to_string()
+        } else {
+            src
+        };
+
+        if std::path::Path::new(&src_actual).exists() {
+            let _ = std::fs::rename(src_actual, dst);
+        }
+    }
+}
+
 
 #[napi]
 pub fn trace(message: Value) {
