@@ -26,7 +26,8 @@ function setLogger(targetId, formatId) {
         target: targetId,
         filePath: FILE_PATH,
         maxFileSize: MAX_FILE_SIZE,
-        maxBackups: 10
+        maxBackups: 10,
+        rotateDaily: true
       },
       fields: {
         time: true,

@@ -46,6 +46,7 @@ pub struct OutputConfig {
     pub file_path: Option<String>,
     pub max_file_size: Option<i64>,
     pub max_backups: Option<u8>,
+    pub rotate_daily: Option<bool>,
 }
 
 #[napi(object)]

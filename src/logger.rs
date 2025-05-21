@@ -5,6 +5,8 @@ use serde_json::Value;
 use std::io::Write;
 use std::option::Option;
 use std::sync::RwLock;
+use std::fs;
+use std::path::{Path, PathBuf};
 
 use crate::config::LOGGER_CONFIG;
 use crate::types::{
@@ -88,10 +90,7 @@ fn format_log_text(entry: &LogEntry, config: &EnvConfig) {
         output
     };
 
-    write_output(
-        &config,
-        &final_output,
-    );
+    write_output(&config, &final_output);
 }
 
 fn format_log_json(entry: &LogEntry, config: &EnvConfig) {
@@ -114,27 +113,84 @@ fn write_output(config: &EnvConfig, message: &str) {
         OutputTarget::Stdout => println!("{}", message),
         OutputTarget::Stderr => eprintln!("{}", message),
         OutputTarget::File => {
-            if let Some(path) = &config.output.file_path {
-                let rotate = should_rotate(&path, &config);
-
-                if rotate {
-                    rotate_logs(&path, &config);
-                }
-
-                if let Ok(mut file) = std::fs::OpenOptions::new()
-                    .create(true)
-                    .append(true)
-                    .open(path)
-                {
-                    let _ = writeln!(file, "{}", message);
-                } else {
-                    eprintln!("[Logger] Failed to write to log file: {}", path);
-                }
-            } else {
-                eprintln!("[Logger] No file path provided for log output.");
-            }
+            file_output(config, message);
         }
         OutputTarget::Null => { /* do nothing */ }
+    }
+}
+
+fn file_output(config: &EnvConfig, message: &str) {
+    if let Some(base_path) = &config.output.file_path {
+        let path = if config.output.rotate_daily.unwrap_or(false) {
+            cleanup_old_daily_logs(base_path, config.output.max_backups.unwrap_or(7));
+            
+            let date_str = Utc::now().format("%Y-%m-%d").to_string();
+            let extension = std::path::Path::new(base_path)
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .unwrap_or("log");
+
+            let stem = std::path::Path::new(base_path)
+                .file_stem()
+                .and_then(|stem| stem.to_str())
+                .unwrap_or("log");
+
+            format!("{}_{}.{}", stem, date_str, extension)
+        } else {
+            base_path.clone()
+        };
+
+        let rotate = should_rotate(&path, &config);
+        if rotate && !config.output.rotate_daily.unwrap_or(false) {
+            rotate_logs(&path, &config);
+        }
+
+        if let Ok(mut file) = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&path)
+        {
+            let _ = writeln!(file, "{}", message);
+        } else {
+            eprintln!("[Logger] Failed to write to log file: {}", path);
+        }
+    } else {
+        eprintln!("[Logger] No file path provided for log output.");
+    }
+}
+
+fn cleanup_old_daily_logs(base_path: &str, max_backups: u8) {
+    let base = Path::new(base_path);
+    let parent = base.parent().unwrap_or_else(|| Path::new("."));
+    let stem = base.file_stem().and_then(|s| s.to_str()).unwrap_or("log");
+    let ext = base.extension().and_then(|s| s.to_str()).unwrap_or("log");
+
+    let pattern_prefix = format!("{}_", stem);
+    let pattern_suffix = format!(".{}", ext);
+
+    let mut files: Vec<PathBuf> = match fs::read_dir(parent) {
+        Ok(entries) => entries
+            .filter_map(|entry| {
+                let entry = entry.ok()?;
+                let path = entry.path();
+                let fname = path.file_name()?.to_str()?;
+
+                if fname.starts_with(&pattern_prefix) && fname.ends_with(&pattern_suffix) {
+                    Some(path)
+                } else {
+                    None
+                }
+            })
+            .collect(),
+        Err(_) => return,
+    };
+
+    files.sort();
+
+    while files.len() > max_backups as usize {
+        if let Some(old_path) = files.remove(0) {
+            let _ = fs::remove_file(old_path);
+        }
     }
 }
 
@@ -155,20 +211,15 @@ fn rotate_logs(path: &str, config: &EnvConfig) {
 
     for i in (1..=max_backups).rev() {
         let src = format!("{}.{}", path, i - 1);
-        let dst = format!("{}.{}", path, i );
+        let dst = format!("{}.{}", path, i);
 
-        let src_actual = if i == 1 {
-            path.to_string()
-        } else {
-            src
-        };
+        let src_actual = if i == 1 { path.to_string() } else { src };
 
         if std::path::Path::new(&src_actual).exists() {
             let _ = std::fs::rename(src_actual, dst);
         }
     }
 }
-
 
 #[napi]
 pub fn trace(message: Value) {
