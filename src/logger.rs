@@ -5,15 +5,13 @@ use serde_json::Value;
 use std::io::Write;
 use std::option::Option;
 use std::sync::RwLock;
-use std::fs;
-use std::path::{Path, PathBuf};
 
 use crate::config::LOGGER_CONFIG;
 use crate::types::{
     EnvConfig, FieldsConfig, LogEntry, LogLevel, LoggerConfig, OutputFormat, OutputTarget,
     SerializableLogEntry,
 };
-use crate::utils::text_from_message;
+use crate::utils::{text_from_message, init_batching_logger, cleanup_old_daily_logs, should_rotate};
 
 #[napi]
 pub fn set_config(config: LoggerConfig) -> Option<EnvConfig> {
@@ -30,7 +28,8 @@ pub fn set_config(config: LoggerConfig) -> Option<EnvConfig> {
         let cell = LOGGER_CONFIG.get_or_init(|| RwLock::new(env_config.clone()));
         let mut current = cell.write().unwrap();
         *current = env_config.clone();
-
+        
+        init_batching_logger(&env_config);
         Some(env_config)
     } else {
         eprintln!("[Logger] No valid logger config for current NODE_ENV. Logger disabled.");
@@ -108,7 +107,7 @@ fn format_log_json(entry: &LogEntry, config: &EnvConfig) {
     }
 }
 
-fn write_output(config: &EnvConfig, message: &str) {
+pub fn write_output(config: &EnvConfig, message: &str) {
     match config.output.target {
         OutputTarget::Stdout => println!("{}", message),
         OutputTarget::Stderr => eprintln!("{}", message),
@@ -157,53 +156,6 @@ fn file_output(config: &EnvConfig, message: &str) {
     } else {
         eprintln!("[Logger] No file path provided for log output.");
     }
-}
-
-fn cleanup_old_daily_logs(base_path: &str, max_backups: u8) {
-    let base = Path::new(base_path);
-    let parent = base.parent().unwrap_or_else(|| Path::new("."));
-    let stem = base.file_stem().and_then(|s| s.to_str()).unwrap_or("log");
-    let ext = base.extension().and_then(|s| s.to_str()).unwrap_or("log");
-
-    let pattern_prefix = format!("{}_", stem);
-    let pattern_suffix = format!(".{}", ext);
-
-    let mut files: Vec<PathBuf> = match fs::read_dir(parent) {
-        Ok(entries) => entries
-            .filter_map(|entry| {
-                let entry = entry.ok()?;
-                let path = entry.path();
-                let fname = path.file_name()?.to_str()?;
-
-                if fname.starts_with(&pattern_prefix) && fname.ends_with(&pattern_suffix) {
-                    Some(path)
-                } else {
-                    None
-                }
-            })
-            .collect(),
-        Err(_) => return,
-    };
-
-    files.sort();
-
-    while files.len() > max_backups as usize {
-        if let Some(old_path) = files.remove(0) {
-            let _ = fs::remove_file(old_path);
-        }
-    }
-}
-
-fn should_rotate(path: &str, config: &EnvConfig) -> bool {
-    let max_size = config.output.max_file_size.unwrap_or(10 * 1024 * 1024); // 10 MB
-
-    if let Ok(metadata) = std::fs::metadata(path) {
-        if max_size >= 0 {
-            return metadata.len() >= max_size as u64;
-        }
-    }
-
-    false
 }
 
 fn rotate_logs(path: &str, config: &EnvConfig) {

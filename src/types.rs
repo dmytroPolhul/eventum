@@ -47,6 +47,9 @@ pub struct OutputConfig {
     pub max_file_size: Option<i64>,
     pub max_backups: Option<u8>,
     pub rotate_daily: Option<bool>,
+    pub batch_enabled: Option<bool>,
+    pub batch_size: Option<i64>,
+    pub batch_interval_ms: Option<i64>,
 }
 
 #[napi(object)]
