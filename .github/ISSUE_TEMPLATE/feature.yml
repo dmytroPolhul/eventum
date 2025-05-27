@@ -1,0 +1,69 @@
+name: ✨ Feature Request
+description: Suggest a new feature or enhancement for hyper-logger.
+title: "[Feature]: "
+labels: [enhancement, feature]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        💡 Thanks for suggesting a feature for **hyper-logger**!
+        Please fill out the form below to help us understand your idea clearly.
+
+  - type: input
+    id: feature_area
+    attributes:
+      label: Feature Area
+      description: What part of the logger does this affect?
+      placeholder: e.g. Transport system, Output formatting, Batching
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Feature Description
+      description: What feature do you want to see? Why is it important?
+      placeholder: |
+        I would like to add support for HTTP-based log transport.
+        This helps integrate hyper-logger with log collection services like Logstash or Datadog.
+    validations:
+      required: true
+
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case / Motivation
+      description: How would this feature be used? Who would benefit?
+      placeholder: |
+        Microservice environments often ship logs via HTTP or Kafka. Built-in support would simplify integration.
+    validations:
+      required: true
+
+  - type: textarea
+    id: possible_implementation
+    attributes:
+      label: Possible Implementation
+      description: Do you have thoughts on how this could be implemented?
+      placeholder: |
+        Maybe we can expose a plugin interface for user-defined transports.
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Have you tried other workarounds or existing loggers?
+      placeholder: |
+        I tried using a pino transport but it adds too much overhead and doesn't batch efficiently.
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Checklist
+      options:
+        - label: I’ve searched existing issues to avoid duplicates
+          required: true
+        - label: I’m willing to help implement this feature
