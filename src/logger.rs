@@ -12,7 +12,7 @@ use crate::types::{
     SerializableLogEntry,
 };
 use crate::utils::{
-    cleanup_old_daily_logs, init_batching_logger, should_rotate, text_from_message,
+    cleanup_old_daily_logs, init_batching_logger, should_rotate, text_from_message, mask_message_if_needed
 };
 use crate::masking::MaskRule;
 
@@ -66,6 +66,8 @@ fn log(entry: LogEntry) {
 
 fn format_log_text(entry: &LogEntry, config: &EnvConfig) {
     let fields = config.fields.clone().unwrap_or_default();
+    
+    let masked_msg = mask_message_if_needed(&entry.msg);
 
     let mut output = String::new();
 
@@ -82,7 +84,7 @@ fn format_log_text(entry: &LogEntry, config: &EnvConfig) {
     }
 
     if fields.msg.unwrap_or(true) {
-        let text = text_from_message(&entry.msg);
+        let text = text_from_message(&masked_msg);
         output.push_str(&format!(" {}", text));
     }
 
@@ -104,10 +106,12 @@ fn format_log_text(entry: &LogEntry, config: &EnvConfig) {
 
 fn format_log_json(entry: &LogEntry, config: &EnvConfig) {
     let fields = config.fields.clone().unwrap_or_default();
+    
+    let masked_msg = mask_message_if_needed(&entry.msg);
 
     let filtered_entry = SerializableLogEntry {
         level: fields.level.unwrap_or(false).then_some(entry.level.clone()),
-        msg: fields.msg.unwrap_or(false).then_some(entry.msg.clone()),
+        msg: fields.msg.unwrap_or(false).then_some(masked_msg),
         time: fields.time.unwrap_or(false).then_some(entry.time),
         pid: fields.pid.unwrap_or(false).then_some(entry.pid),
     };

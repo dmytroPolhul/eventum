@@ -5,7 +5,7 @@ use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
 
-use crate::config::SENDER;
+use crate::config::{SENDER, MASKING_RULES};
 use crate::logger::write_output;
 use crate::types::EnvConfig;
 
@@ -99,3 +99,13 @@ pub fn should_rotate(path: &str, config: &EnvConfig) -> bool {
 
     false
 }
+
+pub fn mask_message_if_needed(msg: &Value) -> Value {
+    if let Some(masking_cell) = MASKING_RULES.get() {
+        let rule = masking_cell.read().unwrap();
+        rule.mask(msg)
+    } else {
+        msg.clone()
+    }
+}
+

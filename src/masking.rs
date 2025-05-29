@@ -1,4 +1,5 @@
 use regex::Regex;
+use serde_json::{Value, Map};
 
 use crate::types::MaskingConfig;
 
@@ -68,4 +69,26 @@ impl MaskRule {
 
         masked
     }
+    
+    pub fn mask(&self, value: &Value) -> Value {
+        match value {
+            Value::Object(obj) => {
+                let mut masked_map = Map::new();
+                for (key, val) in obj {
+                    if let Some(str_val) = val.as_str() {
+                        let masked = self.mask_value(key, str_val);
+                        masked_map.insert(key.clone(), Value::String(masked));
+                    } else {
+                        masked_map.insert(key.clone(), self.mask(val));
+                    }
+                }
+                Value::Object(masked_map)
+            }
+            Value::Array(arr) => {
+                Value::Array(arr.iter().map(|v| self.mask(v)).collect())
+            }
+            _ => value.clone(),
+        }
+    }
+
 }
