@@ -1,12 +1,12 @@
 use serde_json::Value;
+use std::fs;
+use std::path::{Path, PathBuf};
 use std::sync::mpsc;
 use std::thread;
 use std::time::Duration;
-use std::fs;
-use std::path::{Path, PathBuf};
 
 use crate::config::SENDER;
-use crate::logger::{write_output};
+use crate::logger::write_output;
 use crate::types::EnvConfig;
 
 pub fn text_from_message(val: &Value) -> String {

@@ -1,4 +1,4 @@
-import * as logger from "./index.js";
+import * as logger from "../index.js";
 
 logger.setConfig({
   prod: {

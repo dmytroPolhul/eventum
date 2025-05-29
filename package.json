@@ -15,7 +15,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node js/test.js",
     "install": "npm run build",
     "build": "napi build --release",
     "prepublishOnly": "npm run build",

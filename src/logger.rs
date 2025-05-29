@@ -6,12 +6,15 @@ use std::io::Write;
 use std::option::Option;
 use std::sync::RwLock;
 
-use crate::config::LOGGER_CONFIG;
+use crate::config::{LOGGER_CONFIG, MASKING_RULES};
 use crate::types::{
     EnvConfig, FieldsConfig, LogEntry, LogLevel, LoggerConfig, OutputFormat, OutputTarget,
     SerializableLogEntry,
 };
-use crate::utils::{text_from_message, init_batching_logger, cleanup_old_daily_logs, should_rotate};
+use crate::utils::{
+    cleanup_old_daily_logs, init_batching_logger, should_rotate, text_from_message,
+};
+use crate::masking::MaskRule;
 
 #[napi]
 pub fn set_config(config: LoggerConfig) -> Option<EnvConfig> {
@@ -28,7 +31,14 @@ pub fn set_config(config: LoggerConfig) -> Option<EnvConfig> {
         let cell = LOGGER_CONFIG.get_or_init(|| RwLock::new(env_config.clone()));
         let mut current = cell.write().unwrap();
         *current = env_config.clone();
-        
+
+        if env_config.output.masking.is_some() {
+            if let Some(masking_cfg) = &env_config.output.masking {
+                let rules = MaskRule::from(masking_cfg.clone());
+                MASKING_RULES.get_or_init(|| RwLock::new(rules));
+            }
+        }
+
         init_batching_logger(&env_config);
         Some(env_config)
     } else {
@@ -122,7 +132,7 @@ fn file_output(config: &EnvConfig, message: &str) {
     if let Some(base_path) = &config.output.file_path {
         let path = if config.output.rotate_daily.unwrap_or(false) {
             cleanup_old_daily_logs(base_path, config.output.max_backups.unwrap_or(7));
-            
+
             let date_str = Utc::now().format("%Y-%m-%d").to_string();
             let extension = std::path::Path::new(base_path)
                 .extension()

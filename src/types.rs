@@ -39,6 +39,14 @@ pub struct LogEntry {
 
 #[napi(object)]
 #[derive(Clone)]
+pub struct MaskingConfig {
+    pub exact: Option<Vec<String>>,
+    pub partial: Option<Vec<String>>,
+    pub regex: Option<Vec<String>>,
+}
+
+#[napi(object)]
+#[derive(Clone)]
 pub struct OutputConfig {
     pub color: bool,
     pub format: OutputFormat,
@@ -50,6 +58,7 @@ pub struct OutputConfig {
     pub batch_enabled: Option<bool>,
     pub batch_size: Option<i64>,
     pub batch_interval_ms: Option<i64>,
+    pub masking: Option<MaskingConfig>,
 }
 
 #[napi(object)]
