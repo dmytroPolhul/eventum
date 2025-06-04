@@ -8,6 +8,7 @@ pub struct MaskRule {
     pub exact: Vec<String>,
     pub partial: Vec<String>,
     pub regex: Vec<Regex>,
+    pub keyword: String,
 }
 
 impl From<MaskingConfig> for MaskRule {
@@ -23,6 +24,7 @@ impl From<MaskingConfig> for MaskRule {
             exact: cfg.exact.unwrap_or_default(),
             partial: cfg.partial.unwrap_or_default(),
             regex: regex_vec,
+            keyword: cfg.keyword.unwrap_or_else(|| "[MASKED]".to_string()),
         }
     }
 }
@@ -33,21 +35,22 @@ impl MaskRule {
             exact: Vec::new(),
             partial: Vec::new(),
             regex: Vec::new(),
+            keyword: String::new(),
         }
     }
 
     pub fn mask_value(&self, key: &str, value: &str) -> String {
         if self.exact.iter().any(|k| k == key) {
-            return "[MASKED]".to_string();
+            return self.keyword.to_string();
         }
 
         if self.partial.iter().any(|k| key.contains(k)) {
-            return "[MASKED]".to_string();
+            return self.keyword.to_string();
         }
 
         for re in &self.regex {
             if re.is_match(key) {
-                return "[MASKED]".to_string();
+                return self.keyword.to_string();
             }
         }
 

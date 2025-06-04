@@ -40,6 +40,7 @@ pub struct LogEntry {
 #[napi(object)]
 #[derive(Clone)]
 pub struct MaskingConfig {
+    pub keyword: Option<String>,
     pub exact: Option<Vec<String>>,
     pub partial: Option<Vec<String>>,
     pub regex: Option<Vec<String>>,
