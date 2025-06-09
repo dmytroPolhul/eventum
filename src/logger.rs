@@ -12,7 +12,7 @@ use crate::types::{
     SerializableLogEntry,
 };
 use crate::utils::{
-    cleanup_old_daily_logs, init_batching_logger, should_rotate, text_from_message, mask_message_if_needed
+    cleanup_old_daily_logs, init_batching_logger, should_rotate, text_from_message, mask_message_if_needed, validate_config
 };
 use crate::masking::MaskRule;
 
@@ -24,6 +24,11 @@ pub fn set_config(config: LoggerConfig) -> Option<EnvConfig> {
     };
 
     if let Some(mut env_config) = selected_config {
+        if let Err(e) = validate_config(&env_config) {
+                eprintln!("[Logger] Invalid config: {}", e);
+                return None;
+            }
+            
         if env_config.fields.is_none() {
             env_config.fields = Some(FieldsConfig::default());
         }

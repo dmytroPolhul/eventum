@@ -7,7 +7,7 @@ use std::time::Duration;
 
 use crate::config::{SENDER, MASKING_RULES};
 use crate::logger::write_output;
-use crate::types::EnvConfig;
+use crate::types::{EnvConfig, OutputTarget};
 
 pub fn text_from_message(val: &Value) -> String {
     match val {
@@ -109,3 +109,12 @@ pub fn mask_message_if_needed(msg: &Value) -> Value {
     }
 }
 
+pub fn validate_config(env_config: &EnvConfig) -> Result<(), String> {
+    let output = &env_config.output;
+
+    if matches!(output.target, OutputTarget::File) && (output.file_path.is_none() || output.file_path.as_ref().unwrap().is_empty()) {
+        return Err("LoggerConfig.output.filePath must be set when using File target.".to_string());
+    }
+
+    Ok(())
+}

@@ -7,7 +7,6 @@ const config = {
       color: false,
       format: 1,
       target: 2,
-      filePath: './test.masking.log',
       masking: {
         exact: ['password', 'token'],
         regex: ['(?i)bearer\\s+[a-z0-9\\._\\-]+'],
@@ -23,7 +22,16 @@ const config = {
   }
 }
 
-logger.setConfig(config);
+try {
+  const ok = logger.setConfig(config);
+  if (!ok) {
+    throw new Error('Logger rejected config');
+  }
+
+  logger.info('Hello');
+} catch (err) {
+  console.error('[Test] Failed to init logger:', err);
+}
 
 logger.info({
   username: 'admin',
