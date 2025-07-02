@@ -12,6 +12,7 @@ export const {
   trace,
   fatal,
   LogLevel,
+  shutdown,
   setConfig,
   getConfig,
 } = native;

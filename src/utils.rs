@@ -1,11 +1,11 @@
 use serde_json::Value;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::mpsc;
+use std::sync::{mpsc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-use crate::config::{SENDER, MASKING_RULES};
+use crate::config::{BATCH_THREAD, MASKING_RULES, SENDER};
 use crate::logger::write_output;
 use crate::types::{EnvConfig, OutputTarget};
 
@@ -25,16 +25,22 @@ pub fn init_batching_logger(config: &EnvConfig) {
 
     let config_cloned = config.clone();
 
-    thread::spawn(move || {
+    let handle = thread::spawn(move || {
         let mut buffer = Vec::new();
 
         loop {
             match rx.recv_timeout(Duration::from_millis(flush_interval)) {
                 Ok(msg) => {
+                    if msg == "__SHUTDOWN__" {
+                        break;
+                    }
                     buffer.push(msg);
 
                     while buffer.len() < batch_size {
                         if let Ok(msg) = rx.try_recv() {
+                            if msg == "__SHUTDOWN__" {
+                                break;
+                            }
                             buffer.push(msg);
                         } else {
                             break;
@@ -51,7 +57,14 @@ pub fn init_batching_logger(config: &EnvConfig) {
                 buffer.clear();
             }
         }
+
+        if !buffer.is_empty() {
+            let output = buffer.join("\n");
+            write_output(&config_cloned, &output);
+        }
     });
+
+    BATCH_THREAD.set(Mutex::new(Some(handle))).ok();
 }
 
 pub fn cleanup_old_daily_logs(base_path: &str, max_backups: u8) {
@@ -112,7 +125,9 @@ pub fn mask_message_if_needed(msg: &Value) -> Value {
 pub fn validate_config(env_config: &EnvConfig) -> Result<(), String> {
     let output = &env_config.output;
 
-    if matches!(output.target, OutputTarget::File) && (output.file_path.is_none() || output.file_path.as_ref().unwrap().is_empty()) {
+    if matches!(output.target, OutputTarget::File)
+        && (output.file_path.is_none() || output.file_path.as_ref().unwrap().is_empty())
+    {
         return Err("LoggerConfig.output.filePath must be set when using File target.".to_string());
     }
 

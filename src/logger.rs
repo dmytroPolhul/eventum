@@ -6,15 +6,16 @@ use std::io::Write;
 use std::option::Option;
 use std::sync::RwLock;
 
-use crate::config::{LOGGER_CONFIG, MASKING_RULES};
+use crate::config::{LOGGER_CONFIG, MASKING_RULES, SENDER, BATCH_THREAD};
+use crate::masking::MaskRule;
 use crate::types::{
     EnvConfig, FieldsConfig, LogEntry, LogLevel, LoggerConfig, OutputFormat, OutputTarget,
     SerializableLogEntry,
 };
 use crate::utils::{
-    cleanup_old_daily_logs, init_batching_logger, should_rotate, text_from_message, mask_message_if_needed, validate_config
+    cleanup_old_daily_logs, init_batching_logger, mask_message_if_needed, should_rotate,
+    text_from_message, validate_config,
 };
-use crate::masking::MaskRule;
 
 #[napi]
 pub fn set_config(config: LoggerConfig) -> Option<EnvConfig> {
@@ -25,10 +26,10 @@ pub fn set_config(config: LoggerConfig) -> Option<EnvConfig> {
 
     if let Some(mut env_config) = selected_config {
         if let Err(e) = validate_config(&env_config) {
-                eprintln!("[Logger] Invalid config: {}", e);
-                return None;
-            }
-            
+            eprintln!("[Logger] Invalid config: {}", e);
+            return None;
+        }
+
         if env_config.fields.is_none() {
             env_config.fields = Some(FieldsConfig::default());
         }
@@ -71,7 +72,7 @@ fn log(entry: LogEntry) {
 
 fn format_log_text(entry: &LogEntry, config: &EnvConfig) {
     let fields = config.fields.clone().unwrap_or_default();
-    
+
     let masked_msg = mask_message_if_needed(&entry.msg);
 
     let mut output = String::new();
@@ -111,7 +112,7 @@ fn format_log_text(entry: &LogEntry, config: &EnvConfig) {
 
 fn format_log_json(entry: &LogEntry, config: &EnvConfig) {
     let fields = config.fields.clone().unwrap_or_default();
-    
+
     let masked_msg = mask_message_if_needed(&entry.msg);
 
     let filtered_entry = SerializableLogEntry {
@@ -169,11 +170,17 @@ fn file_output(config: &EnvConfig, message: &str) {
             .open(&path)
         {
             if let Err(err) = writeln!(file, "{}", message) {
-                eprintln!("[Logger] Failed to write to file {}: {}. Fallback to stderr.", path, err);
+                eprintln!(
+                    "[Logger] Failed to write to file {}: {}. Fallback to stderr.",
+                    path, err
+                );
                 eprintln!("{}", message);
             }
         } else {
-            eprintln!("[Logger] Failed to open log file: {}. Fallback to stderr.", path);
+            eprintln!(
+                "[Logger] Failed to open log file: {}. Fallback to stderr.",
+                path
+            );
             eprintln!("{}", message);
         }
     } else {
@@ -254,4 +261,17 @@ pub fn fatal(message: Value) {
         pid: std::process::id(),
         msg: message,
     });
+}
+
+#[napi]
+pub fn shutdown() {
+    if let Some(sender) = SENDER.get() {
+        let _ = sender.send("__SHUTDOWN__".to_string());
+    }
+
+    if let Some(thread_mutex) = BATCH_THREAD.get() {
+        if let Some(handle) = thread_mutex.lock().unwrap().take() {
+            let _ = handle.join();
+        }
+    }
 }

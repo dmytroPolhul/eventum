@@ -1,5 +1,5 @@
 use regex::Regex;
-use serde_json::{Value, Map};
+use serde_json::{Map, Value};
 
 use crate::types::MaskingConfig;
 
@@ -72,7 +72,7 @@ impl MaskRule {
 
         masked
     }
-    
+
     pub fn mask(&self, value: &Value) -> Value {
         match value {
             Value::Object(obj) => {
@@ -87,11 +87,8 @@ impl MaskRule {
                 }
                 Value::Object(masked_map)
             }
-            Value::Array(arr) => {
-                Value::Array(arr.iter().map(|v| self.mask(v)).collect())
-            }
+            Value::Array(arr) => Value::Array(arr.iter().map(|v| self.mask(v)).collect()),
             _ => value.clone(),
         }
     }
-
 }
