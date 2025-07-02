@@ -168,9 +168,13 @@ fn file_output(config: &EnvConfig, message: &str) {
             .append(true)
             .open(&path)
         {
-            let _ = writeln!(file, "{}", message);
+            if let Err(err) = writeln!(file, "{}", message) {
+                eprintln!("[Logger] Failed to write to file {}: {}. Fallback to stderr.", path, err);
+                eprintln!("{}", message);
+            }
         } else {
-            eprintln!("[Logger] Failed to write to log file: {}", path);
+            eprintln!("[Logger] Failed to open log file: {}. Fallback to stderr.", path);
+            eprintln!("{}", message);
         }
     } else {
         eprintln!("[Logger] No file path provided for log output.");
