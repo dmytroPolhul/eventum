@@ -35,7 +35,6 @@ for (let i = 0; i < logCount; i++) {
   logger.info(`Log entry number ${i}`);
 }
 
-// Викликаємо shutdown() щоб примусово записати все і завершити
 logger.shutdown();
 
 setTimeout(() => {
@@ -46,9 +45,9 @@ setTimeout(() => {
     console.log(`\n[Flush Test] Total log lines: ${lines.length}`);
 
     if (lines.length >= logCount) {
-      console.log('✅ Flush/shutdown test passed.');
+      console.log('Flush/shutdown test passed.');
     } else {
-      console.error('❌ Flush/shutdown test failed. Not all logs were flushed.');
+      console.error('Flush/shutdown test failed. Not all logs were flushed.');
     }
   } catch (err) {
     console.error('[Flush Test] Failed to read log file:', err);

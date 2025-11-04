@@ -1,7 +1,7 @@
 {
   "name": "hyper_logger",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.0-alpha.1",
+  "description": "Ultra-fast logger powered by Rust and napi-rs",
   "homepage": "https://github.com/dmytroPolhul/hyper-logger#readme",
   "bugs": {
     "url": "https://github.com/dmytroPolhul/hyper-logger/issues"
@@ -10,17 +10,37 @@
     "type": "git",
     "url": "git+https://github.com/dmytroPolhul/hyper-logger.git"
   },
+  "exports": {
+      ".": {
+        "import": "./index.js",
+        "require": "./index.js"
+      }
+    },
   "license": "MIT",
   "author": "Dmytro Polhul",
   "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "node js/test.js",
-    "install": "npm run build",
     "build": "napi build --release",
     "prepublishOnly": "npm run build",
-    "bench-test": "node js/compare-targets-bench.js"
+    "bench": "node js/benchmark/compare-targets-bench.js"
   },
+  "files": [
+    "index.js",
+    "index.d.ts",
+    "hyper_logger.node",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "logger",
+    "napi",
+    "rust",
+    "nodejs",
+    "performance",
+    "structured-logging"
+  ],
   "dependencies": {
     "file-uri-to-path": "^1.0.0"
   },

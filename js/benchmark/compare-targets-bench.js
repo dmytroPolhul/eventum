@@ -1,4 +1,4 @@
-import * as logger from "../index.js";
+import * as logger from "../../index.js";
 import fs from "fs";
 
 const LOG_COUNT = 1_000_000;
@@ -88,7 +88,7 @@ function runBenchmark(targetName, targetId, formatName, formatId) {
 
   for (const { name: formatName, id: formatId } of FORMATS) {
     for (const { name: targetName, id: targetId } of TARGETS) {
-      console.log(`\n🏁 Benchmarking: [${formatName}] → ${targetName}`);
+      console.log(`Benchmarking: [${formatName}] → ${targetName}`);
       const result = runBenchmark(targetName, targetId, formatName, formatId);
       results.push(result);
     }

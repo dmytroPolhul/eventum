@@ -1,4 +1,4 @@
-import * as logger from '../index.js';
+import * as logger from '../../index.js';
 import fs from 'fs';
 
 const config = {
@@ -44,14 +44,14 @@ logger.info({
 
 setTimeout(() => {
   const output = fs.readFileSync('./test.masking.log', 'utf8');
-  console.log('\nMasked Output:\n', output);
+  console.log('Masked Output:\n', output);
 
   const hasPassword = output.includes('supersecret');
   const hasToken = output.includes('Bearer abc');
   const hasMasked = output.includes(config.prod.output.masking.keyword ?? "[MASKED]");
 
   if (!hasPassword && !hasToken && hasMasked) {
-    console.log('✅ Masking test passed.');
+    console.log('Masking test passed.');
   } else {
     console.error('❌ Masking test failed.');
     if (hasPassword) console.error('→ Password was not masked.');
