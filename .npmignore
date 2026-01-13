@@ -1,0 +1,55 @@
+# Rust source and build artifacts
+src/
+target/
+Cargo.toml
+Cargo.lock
+build.rs
+*.rs
+
+# Development and test files
+test/
+benchmarks/
+*.log
+
+# GitHub files
+.github/
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# CI/CD
+.circleci/
+.travis.yml
+azure-pipelines.yml
+.gitlab-ci.yml
+
+# Dependencies (npm handles this automatically but explicit is better)
+node_modules/
+
+# Environment and config
+.env
+.env.*
+.npmrc
+
+# Documentation source (if you have separate docs folder)
+docs/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Misc
+*.tgz
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.yarn/

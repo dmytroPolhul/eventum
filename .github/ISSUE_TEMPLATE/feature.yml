@@ -1,12 +1,12 @@
-name: ✨ Feature Request
-description: Suggest a new feature or enhancement for hyper-logger.
+name: Feature Request
+description: Suggest a new feature or enhancement for eventum.
 title: "[Feature]: "
 labels: [enhancement, feature]
 body:
   - type: markdown
     attributes:
       value: |
-        💡 Thanks for suggesting a feature for **hyper-logger**!
+        Thanks for suggesting a feature for **eventum**!
         Please fill out the form below to help us understand your idea clearly.
 
   - type: input
@@ -25,7 +25,7 @@ body:
       description: What feature do you want to see? Why is it important?
       placeholder: |
         I would like to add support for HTTP-based log transport.
-        This helps integrate hyper-logger with log collection services like Logstash or Datadog.
+        This helps integrate eventum with log collection services like Logstash or Datadog.
     validations:
       required: true
 

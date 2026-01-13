@@ -1,4 +1,4 @@
-name: 🐛 Bug Report
+name: Bug Report
 description: Report something that isn't working as expected
 title: "[Bug]: "
 labels: [bug]
@@ -6,14 +6,14 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for reporting a bug in **hyper-logger**!
+        Thanks for reporting a bug in **eventum**!
         Please complete the form below so we can help you faster.
 
   - type: input
     id: version
     attributes:
-      label: hyper-logger version
-      description: What version of hyper-logger are you using?
+      label: eventum version
+      description: What version of eventum are you using?
       placeholder: e.g. 0.1.0
     validations:
       required: true
@@ -51,7 +51,7 @@ body:
       label: Steps to reproduce
       description: Provide a step-by-step list so we can reproduce the bug.
       placeholder: |
-        1. Install hyper-logger
+        1. Install eventum
         2. Configure log rotation
         3. Generate logs
         4. Observe behavior

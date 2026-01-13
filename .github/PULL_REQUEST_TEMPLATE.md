@@ -1,10 +1,10 @@
-# 🚀 Pull Request
+# Pull Request
 
 Thank you for your contribution! Please review the checklist below and provide as much context as possible.
 
 ---
 
-## ✅ What does this PR do?
+## What does this PR do?
 
 <!-- A short summary of the changes introduced in this PR -->
 
@@ -16,13 +16,13 @@ Thank you for your contribution! Please review the checklist below and provide a
 
 ---
 
-## 📋 Description
+## Description
 
 <!-- Describe what the PR changes and why it's needed -->
 
 ---
 
-## 🧪 Testing
+## Testing
 
 <!-- Describe how you tested this change and what manual/automated steps were taken -->
 
@@ -32,7 +32,7 @@ Thank you for your contribution! Please review the checklist below and provide a
 
 ---
 
-## 📝 Checklist
+## Checklist
 
 - [ ] I’ve followed the code style and formatting
 - [ ] I’ve added necessary documentation (if applicable)
@@ -41,7 +41,7 @@ Thank you for your contribution! Please review the checklist below and provide a
 
 ---
 
-## 📎 Related Issues
+## Related Issues
 
 Closes #  
 Fixes #  
@@ -49,6 +49,6 @@ Related to #
 
 ---
 
-## 💬 Additional Notes
+## Additional Notes
 
 <!-- Optional: anything else reviewers should know -->

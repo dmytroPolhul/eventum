@@ -10,18 +10,19 @@ Eventum is a high-performance logger built to capture those events with minimal 
 
 ## 🚀 Why Eventum?
 
-- ✨ **Minimal overhead** — Rust handles all heavy lifting with almost no impact on the event loop.
-- 🧵 **Threaded batching** — efficient log batching in background threads.
-- 📦 **Compact** — no outdated JS dependencies.
-- 📄 **Text and JSON output support**.
-- 🧠 **Smart batching** — log millions of messages with ease.
-- 🌈 **Colorized output** (great for CLI debugging).
-- 🔁 **Log rotation**: daily, by size, with backups.
-- 🧪 **NODE_ENV aware** — separate config for dev and prod.
+- **Minimal overhead** — Rust handles all heavy lifting with almost no impact on the event loop.
+- **Threaded batching** — efficient log batching in background threads.
+- **Compact** — no outdated JS dependencies.
+- **Text and JSON output support**.
+- **Smart batching** — log millions of messages with ease.
+- **Colorized output** (great for CLI debugging).
+- **Log rotation**: daily, by size, with backups.
+- **Sensitive data masking** — protect passwords, tokens, and PII.
+- **NODE_ENV aware** — separate config for dev and prod.
 
 ---
 
-## 📦 Installation
+## Installation
 
 ```bash
 npm install eventum
@@ -33,7 +34,7 @@ yarn add eventum
 
 ---
 
-## 🛠️ Example Usage
+## Example Usage
 
 ```ts
 import * as logger from 'eventum';
@@ -78,7 +79,48 @@ logger.warn('This is a warning');
 
 ---
 
-## 📘 API
+## Sensitive Data Masking
+
+Protect sensitive information in your logs with built-in masking:
+
+```ts
+import * as logger from 'eventum';
+
+logger.setConfig({
+  prod: {
+    output: {
+      format: 1, // JSON
+      target: 2, // File
+      filePath: './app.log',
+      masking: {
+        keyword: '***',                              // Replacement text
+        exact: ['password', 'token', 'apiKey'],      // Mask these field names
+        partial: ['email', 'creditCard'],            // Partial masking
+        regex: ['(?i)bearer\\s+[a-z0-9\\._\\-]+']   // Regex patterns
+      }
+    }
+  }
+});
+
+// Sensitive data will be automatically masked
+logger.info({
+  username: 'alice',
+  password: 'secret123',           // Will be masked
+  token: 'Bearer abc.def.ghi',     // Will be masked
+  email: 'alice@example.com'       // Will be partially masked
+});
+
+// Output: { username: 'alice', password: '***', token: '***', email: 'a***@e***.com' }
+```
+
+### Masking Options
+
+- **`exact`**: Masks entire value of matching field names
+- **`partial`**: Masks portions of field values (useful for emails, phone numbers)
+- **`regex`**: Custom regex patterns to match and mask (case-insensitive with `(?i)`)
+- **`keyword`**: Replacement text (default: `[MASKED]`)
+
+---
 
 <details>
 <summary>Types & Enums</summary>
@@ -110,6 +152,13 @@ interface EnvConfig {
 - `batchEnabled?: boolean`
 - `batchSize?: number`
 - `batchIntervalMs?: number`
+- `masking?: MaskingConfig`
+
+### `MaskingConfig`
+- `keyword?: string` - Replacement text (default: `[MASKED]`)
+- `exact?: string[]` - Field names to mask completely
+- `partial?: string[]` - Field names to mask partially
+- `regex?: string[]` - Regex patterns to match and mask
 
 ### `LogLevel`
 - `Trace = 0`, `Debug = 1`, `Info = 2`, `Warn = 3`, `Error = 4`, `Fatal = 5`
@@ -118,7 +167,7 @@ interface EnvConfig {
 
 ---
 
-## 🛠 Built With
+## Built With
 
 ```toml
 [dependencies]
@@ -133,13 +182,13 @@ chrono = { version = "0.4", features = ["serde"] }
 
 ---
 
-## 🛡 License
+## License
 
 MIT
 
 ---
 
-## 🧩 Roadmap
+## Roadmap
 
 - [ ] Async file writing support
 - [ ] External transport targets (sockets, Kafka, etc.)
