@@ -13,3 +13,5 @@ index.d.ts
 index.node
 .idea/
 *.log
+
+coverage/

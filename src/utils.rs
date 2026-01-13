@@ -1,4 +1,4 @@
-use serde_json::Value;
+use serde_json::{Map, Value};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::{mpsc, Mutex};
@@ -9,11 +9,48 @@ use crate::config::{BATCH_THREAD, MASKING_RULES, SENDER};
 use crate::logger::write_output;
 use crate::types::{EnvConfig, OutputTarget};
 
-pub fn text_from_message(val: &Value) -> String {
+pub fn extract_scope_and_value(val: &Value) -> (Option<String>, Value) {
     match val {
-        Value::String(s) => s.clone(),
-        other => serde_json::to_string_pretty(other).unwrap_or_else(|_| "<Invalid JSON>".into()),
+        Value::Object(map) => {
+            let mut map: Map<String, Value> = map.clone();
+
+            let scope = map
+                .remove("scope")
+                .and_then(|v| v.as_str().map(|s| s.to_string()));
+
+            (scope, Value::Object(map))
+        }
+        _ => (None, val.clone()),
     }
+}
+
+
+pub fn extract_scope_and_text(val: &Value) -> (Option<String>, String) {
+    let (scope, msg_without_scope) = extract_scope_and_value(val);
+
+    let text = match &msg_without_scope {
+        Value::String(s) => s.clone(),
+
+        Value::Object(map) => {
+            if map.len() == 1 && map.contains_key("message") {
+                map.get("message")
+                    .and_then(|v| v.as_str())
+                    .map(|s| s.to_string())
+                    .unwrap_or_else(|| {
+                        serde_json::to_string_pretty(&msg_without_scope)
+                            .unwrap_or_else(|_| "<Invalid JSON>".into())
+                    })
+            } else {
+                serde_json::to_string_pretty(&msg_without_scope)
+                    .unwrap_or_else(|_| "<Invalid JSON>".into())
+            }
+        }
+
+        other => serde_json::to_string_pretty(other)
+            .unwrap_or_else(|_| "<Invalid JSON>".into()),
+    };
+
+    (scope, text)
 }
 
 pub fn init_batching_logger(config: &EnvConfig) {

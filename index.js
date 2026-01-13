@@ -10,23 +10,28 @@ let native;
 try {
   native = require(nativePath);
 } catch (err) {
-  const buildCommand = process.platform === 'win32' ? 'npm.cmd run build' : 'npm run build';
+  const buildCommand = process.platform === "win32" ? "npm.cmd run build" : "npm run build";
+  const message = err && err.message ? err.message : String(err);
+
   throw new Error(
-    `Failed to load native module at ${nativePath}\n.
-    Make sure you have built it first using: \`${buildCommand}\`\n.
-    Original error: ${err.message}`
+    [
+      `Failed to load native module at: ${nativePath}`,
+      `Build it first using: \`${buildCommand}\``,
+      `Original error: ${message}`,
+    ].join("\n")
   );
 }
 
 export const {
-  log,
-  info,
   debug,
+  info,
   warn,
   error,
   trace,
   fatal,
   LogLevel,
+  OutputFormat,
+  OutputTarget,
   shutdown,
   setConfig,
 } = native;

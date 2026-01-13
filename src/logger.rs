@@ -14,7 +14,7 @@ use crate::types::{
 };
 use crate::utils::{
     cleanup_old_daily_logs, init_batching_logger, mask_message_if_needed, should_rotate,
-    text_from_message, validate_config,
+    extract_scope_and_text, extract_scope_and_value, validate_config,
 };
 
 #[napi]
@@ -41,7 +41,8 @@ pub fn set_config(config: LoggerConfig) -> Option<EnvConfig> {
         if env_config.output.masking.is_some() {
             if let Some(masking_cfg) = &env_config.output.masking {
                 let rules = MaskRule::from(masking_cfg.clone());
-                MASKING_RULES.get_or_init(|| RwLock::new(rules));
+                let cell = MASKING_RULES.get_or_init(|| RwLock::new(rules.clone()));
+                *cell.write().unwrap() = rules;
             }
         }
 
@@ -53,7 +54,6 @@ pub fn set_config(config: LoggerConfig) -> Option<EnvConfig> {
     }
 }
 
-#[napi]
 fn log(entry: LogEntry) {
     let Some(config_cell) = LOGGER_CONFIG.get() else {
         return;
@@ -90,19 +90,27 @@ fn format_log_text(entry: &LogEntry, config: &EnvConfig) {
     }
 
     if fields.msg.unwrap_or(true) {
-        let text = text_from_message(&masked_msg);
-        output.push_str(&format!(" {}", text));
+        let (scope, text) = extract_scope_and_text(&masked_msg);
+        if let Some(scope) = scope {
+            output.push_str(&format!(" [{}]", scope));
+        }
+
+        if !text.is_empty() {
+            output.push_str(&format!(" {}", text));
+        }
     }
 
-    let final_output = if config.output.color {
+    let color = config.output.color.unwrap_or(false);
+
+    let final_output = if color {
         match entry.level {
-            LogLevel::Trace => output.yellow().to_string(),
-            LogLevel::Debug => output.purple().to_string(),
-            LogLevel::Info => output.white().to_string(),
-            LogLevel::Warn => output.green().to_string(),
+            LogLevel::Trace => output.bright_black().to_string(),
+            LogLevel::Debug => output.cyan().to_string(),
+            LogLevel::Info  => output.green().to_string(),
+            LogLevel::Warn  => output.yellow().to_string(),
             LogLevel::Error => output.red().to_string(),
             LogLevel::Fatal => output.bold().red().to_string(),
-        }
+        }        
     } else {
         output
     };
@@ -112,18 +120,20 @@ fn format_log_text(entry: &LogEntry, config: &EnvConfig) {
 
 fn format_log_json(entry: &LogEntry, config: &EnvConfig) {
     let fields = config.fields.clone().unwrap_or_default();
-
     let masked_msg = mask_message_if_needed(&entry.msg);
+
+    let (scope, msg_without_scope) = extract_scope_and_value(&masked_msg);
 
     let filtered_entry = SerializableLogEntry {
         level: fields.level.unwrap_or(false).then_some(entry.level.clone()),
-        msg: fields.msg.unwrap_or(false).then_some(masked_msg),
+        msg: fields.msg.unwrap_or(true).then_some(msg_without_scope),
         time: fields.time.unwrap_or(false).then_some(entry.time),
         pid: fields.pid.unwrap_or(false).then_some(entry.pid),
+        scope,
     };
 
     if let Ok(json) = serde_json::to_string(&filtered_entry) {
-        write_output(&config, &json);
+        write_output(config, &json);
     }
 }
 
@@ -269,9 +279,13 @@ pub fn shutdown() {
         let _ = sender.send("__SHUTDOWN__".to_string());
     }
 
-    if let Some(thread_mutex) = BATCH_THREAD.get() {
-        if let Some(handle) = thread_mutex.lock().unwrap().take() {
-            let _ = handle.join();
-        }
+    let handle = if let Some(thread_mutex) = BATCH_THREAD.get() {
+        thread_mutex.lock().unwrap().take()
+    } else {
+        None
+    };
+
+    if let Some(handle) = handle {
+        let _ = handle.join();
     }
 }

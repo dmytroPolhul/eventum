@@ -49,7 +49,7 @@ pub struct MaskingConfig {
 #[napi(object)]
 #[derive(Clone)]
 pub struct OutputConfig {
-    pub color: bool,
+    pub color: Option<bool>,
     pub format: OutputFormat,
     pub target: OutputTarget,
     pub file_path: Option<String>,
@@ -110,4 +110,7 @@ pub struct SerializableLogEntry {
 
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pid: Option<u32>,
+
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub scope: Option<String>,
 }

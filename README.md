@@ -1,19 +1,25 @@
 # Eventum
 
+> ⚠️ Eventum is currently in **alpha**.  
+> APIs may change, and platform support is still evolving.  
+> Prebuilt binaries are currently limited.  
+> If you encounter build issues, please open an issue.
+
+
 **High-performance, low-overhead logger for Node.js apps powered by Rust.**
 
-`Eventum` comes from Latin eventus — that which has happened.
+`Eventum` comes from the Latin *eventus* — “that which has happened”.
 In distributed systems, logs are not messages — they are recorded events with consequences.
 Eventum is a high-performance logger built to capture those events with minimal overhead.
 
 ---
 
-## 🚀 Why Eventum?
+## Why Eventum?
 
 - **Minimal overhead** — Rust handles all heavy lifting with almost no impact on the event loop.
 - **Threaded batching** — efficient log batching in background threads.
 - **Compact** — no outdated JS dependencies.
-- **Text and JSON output support**.
+- **Text and JSON output formats**.
 - **Smart batching** — log millions of messages with ease.
 - **Colorized output** (great for CLI debugging).
 - **Log rotation**: daily, by size, with backups.
@@ -62,7 +68,10 @@ logger.warn('This is a warning');
 
 ---
 
-## 🧪 Benchmark (1 million logs)
+## Benchmark (1 million logs)
+> Benchmarks were executed locally on a development machine.
+> Results may vary depending on hardware and environment.
+
 
 | Format | Target  | CPU ms   | Elapsed ms | CPU %   | Memory MB | Logs/sec  |
 |--------|---------|----------|------------|---------|-----------|-----------|
@@ -89,13 +98,13 @@ import * as logger from 'eventum';
 logger.setConfig({
   prod: {
     output: {
-      format: 1, // JSON
-      target: 2, // File
+      format: 0, // OutputFormat.Text
+      target: 1, // OutputTarget.Stderr
       filePath: './app.log',
       masking: {
         keyword: '***',                              // Replacement text
         exact: ['password', 'token', 'apiKey'],      // Mask these field names
-        partial: ['email', 'creditCard'],            // Partial masking
+        partial: ['email', 'creditCard'],            // Matches substrings in field names
         regex: ['(?i)bearer\\s+[a-z0-9\\._\\-]+']   // Regex patterns
       }
     }
@@ -110,15 +119,17 @@ logger.info({
   email: 'alice@example.com'       // Will be partially masked
 });
 
-// Output: { username: 'alice', password: '***', token: '***', email: 'a***@e***.com' }
+// Output: { username: 'alice', password: '***', token: '***', email: '***' }
 ```
 
 ### Masking Options
 
-- **`exact`**: Masks entire value of matching field names
-- **`partial`**: Masks portions of field values (useful for emails, phone numbers)
-- **`regex`**: Custom regex patterns to match and mask (case-insensitive with `(?i)`)
-- **`keyword`**: Replacement text (default: `[MASKED]`)
+- **`exact`** — masks values of fields with an exact name match  
+  (e.g. `password`, `token`)
+- **`partial`** — masks values of fields whose names *contain* any of the given substrings  
+  (e.g. `user_email`, `billingEmail`, `creditCardNumber`)
+- **`regex`** — masks values matched by custom regex patterns
+- **`keyword`** — replacement string (default: `[MASKED]`)
 
 ---
 
@@ -194,6 +205,13 @@ MIT
 - [ ] External transport targets (sockets, Kafka, etc.)
 - [ ] WebAssembly support
 - [ ] File compression on rotation
+
+---
+
+## Reliability Notes
+
+Eventum does not guarantee delivery of in-memory batched logs on process crash.
+Call `shutdown()` on graceful exit to flush buffered logs (may block briefly).
 
 ---
 
