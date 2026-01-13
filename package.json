@@ -1,19 +1,26 @@
 {
-  "name": "hyper_logger",
-  "version": "1.0.0-alpha.1",
+  "name": "eventum",
+  "version": "0.1.0-alpha.0",
+  "private": false,
   "description": "Ultra-fast logger powered by Rust and napi-rs",
-  "homepage": "https://github.com/dmytroPolhul/hyper-logger#readme",
+  "homepage": "https://github.com/dmytroPolhul/eventum#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "os": ["darwin", "linux", "win32"],
+  "cpu": ["x64", "arm64"],
   "bugs": {
-    "url": "https://github.com/dmytroPolhul/hyper-logger/issues"
+    "url": "https://github.com/dmytroPolhul/eventum/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dmytroPolhul/hyper-logger.git"
+    "url": "git+https://github.com/dmytroPolhul/eventum.git"
   },
   "exports": {
       ".": {
         "import": "./index.js",
-        "require": "./index.js"
+        "require": "./index.js",
+        "types": "./index.d.ts"
       }
     },
   "license": "MIT",
@@ -21,7 +28,7 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "node js/test.js",
+    "test": "node test/masking.js",
     "build": "napi build --release",
     "prepublishOnly": "npm run build",
     "bench": "node js/benchmark/compare-targets-bench.js"
@@ -29,17 +36,21 @@
   "files": [
     "index.js",
     "index.d.ts",
-    "hyper_logger.node",
+    "index.node",
     "README.md",
     "LICENSE"
   ],
   "keywords": [
     "logger",
+    "logging",
     "napi",
     "rust",
     "nodejs",
     "performance",
-    "structured-logging"
+    "structured-logging",
+    "fast-logger",
+    "batching",
+    "log-rotation"
   ],
   "dependencies": {
     "file-uri-to-path": "^1.0.0"

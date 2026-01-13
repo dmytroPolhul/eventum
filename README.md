@@ -1,12 +1,14 @@
-# ⚡ hyper-logger
+# Eventum
 
 **High-performance, low-overhead logger for Node.js apps powered by Rust.**
 
-`hyper-logger` is a blazing-fast, low-level logger for Node.js (and any JS/TS apps), built with Rust for ultimate performance. Its primary goal is to be lightweight, easy to use, and just as powerful as `winston` or `pino`, but with minimal CPU and memory overhead.
+`Eventum` comes from Latin eventus — that which has happened.
+In distributed systems, logs are not messages — they are recorded events with consequences.
+Eventum is a high-performance logger built to capture those events with minimal overhead.
 
 ---
 
-## 🚀 Why hyper-logger?
+## 🚀 Why Eventum?
 
 - ✨ **Minimal overhead** — Rust handles all heavy lifting with almost no impact on the event loop.
 - 🧵 **Threaded batching** — efficient log batching in background threads.
@@ -22,9 +24,9 @@
 ## 📦 Installation
 
 ```bash
-npm install hyper-logger
+npm install eventum
 # or
-yarn add hyper-logger
+yarn add eventum
 ```
 
 > Under the hood: compiled Rust binary with no runtime dependencies.
@@ -34,7 +36,7 @@ yarn add hyper-logger
 ## 🛠️ Example Usage
 
 ```ts
-import * as logger from 'hyper-logger';
+import * as logger from 'eventum';
 
 logger.setConfig({
   prod: {

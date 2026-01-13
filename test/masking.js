@@ -1,4 +1,4 @@
-import * as logger from '../../index.js';
+import * as logger from '../index.js';
 import fs from 'fs';
 
 const config = {
@@ -6,7 +6,7 @@ const config = {
     output: {
       color: false,
       format: 1,
-      target: 2,
+      target: 1,
       masking: {
         exact: ['password', 'token'],
         regex: ['(?i)bearer\\s+[a-z0-9\\._\\-]+'],

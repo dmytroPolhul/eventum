@@ -1,7 +1,7 @@
 [package]
-name = "hyper-logger"
+name = "eventum"
 version = "0.1.0"
-edition = "2021"
+edition = "2025"
 
 build = "build.rs"
 
@@ -19,5 +19,5 @@ chrono = { version = "0.4", features = ["serde"] }
 regex = "1.11.1"
 
 [lib]
-name = "hyper_logger"
+name = "eventum"
 crate-type = ["cdylib"]
