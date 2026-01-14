@@ -55,7 +55,7 @@ body:
       label: Alternatives Considered
       description: Have you tried other workarounds or existing loggers?
       placeholder: |
-        I tried using a pino transport but it adds too much overhead and doesn't batch efficiently.
+        I tried using a other logger transport but it adds too much overhead and doesn't batch efficiently.
     validations:
       required: false
 

@@ -28,8 +28,14 @@ pub enum OutputFormat {
     Json,
 }
 
+#[derive(Debug)]
+pub enum WorkerMsg {
+    Entry(LogEntry),
+    Shutdown,
+}
+
 #[napi(object)]
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct LogEntry {
     pub level: LogLevel,
     pub msg: Value,
@@ -85,7 +91,6 @@ impl Default for FieldsConfig {
 #[napi(object)]
 #[derive(Clone)]
 pub struct EnvConfig {
-    pub transport: Option<String>,
     pub output: OutputConfig,
     pub fields: Option<FieldsConfig>,
 }

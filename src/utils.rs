@@ -1,13 +1,15 @@
+use chrono::Utc;
 use serde_json::{Map, Value};
 use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::sync::{mpsc, Mutex};
 use std::thread;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
-use crate::config::{BATCH_THREAD, MASKING_RULES, SENDER};
-use crate::logger::write_output;
-use crate::types::{EnvConfig, OutputTarget};
+use crate::config::{BATCH_THREAD, LOGGER_CONFIG, MASKING_RULES, SENDER};
+use crate::format::{format_log_json, format_log_text};
+use crate::types::{EnvConfig, LogEntry, OutputFormat, OutputTarget, WorkerMsg};
 
 pub fn extract_scope_and_value(val: &Value) -> (Option<String>, Value) {
     match val {
@@ -23,7 +25,6 @@ pub fn extract_scope_and_value(val: &Value) -> (Option<String>, Value) {
         _ => (None, val.clone()),
     }
 }
-
 
 pub fn extract_scope_and_text(val: &Value) -> (Option<String>, String) {
     let (scope, msg_without_scope) = extract_scope_and_value(val);
@@ -46,62 +47,110 @@ pub fn extract_scope_and_text(val: &Value) -> (Option<String>, String) {
             }
         }
 
-        other => serde_json::to_string_pretty(other)
-            .unwrap_or_else(|_| "<Invalid JSON>".into()),
+        other => serde_json::to_string_pretty(other).unwrap_or_else(|_| "<Invalid JSON>".into()),
     };
 
     (scope, text)
 }
 
 pub fn init_batching_logger(config: &EnvConfig) {
-    let (tx, rx) = mpsc::channel::<String>();
+    if !config.output.batch_enabled.unwrap_or(false) {
+        return;
+    }
+
+    if SENDER.get().is_some() {
+        return;
+    }
+
+    let (tx, rx) = mpsc::channel::<WorkerMsg>();
     SENDER.set(tx).ok();
 
-    let flush_interval = config.output.batch_interval_ms.unwrap_or(100).max(0) as u64;
-    let batch_size = config.output.batch_size.unwrap_or(50).max(1) as usize;
+    let flush_interval_ms = config.output.batch_interval_ms.unwrap_or(100);
+    let flush_interval_ms = flush_interval_ms.max(1) as u64;
 
-    let config_cloned = config.clone();
+    let batch_size = config.output.batch_size.unwrap_or(50);
+    let batch_size = batch_size.max(1) as usize;
 
     let handle = thread::spawn(move || {
-        let mut buffer = Vec::new();
+        let mut buffer: Vec<LogEntry> = Vec::with_capacity(batch_size);
+        let mut last_flush = Instant::now();
 
         loop {
-            match rx.recv_timeout(Duration::from_millis(flush_interval)) {
-                Ok(msg) => {
-                    if msg == "__SHUTDOWN__" {
-                        break;
+            let elapsed = last_flush.elapsed();
+            let timeout = Duration::from_millis(flush_interval_ms).saturating_sub(elapsed);
+
+            match rx.recv_timeout(timeout) {
+                Ok(WorkerMsg::Entry(entry)) => {
+                    buffer.push(entry);
+
+                    if buffer.len() >= batch_size {
+                        flush(&mut buffer);
+                        last_flush = Instant::now();
+                        continue;
                     }
-                    buffer.push(msg);
 
                     while buffer.len() < batch_size {
-                        if let Ok(msg) = rx.try_recv() {
-                            if msg == "__SHUTDOWN__" {
-                                break;
+                        match rx.try_recv() {
+                            Ok(WorkerMsg::Entry(entry2)) => buffer.push(entry2),
+                            Ok(WorkerMsg::Shutdown) => {
+                                flush(&mut buffer);
+                                return;
                             }
-                            buffer.push(msg);
-                        } else {
-                            break;
+                            Err(_) => break,
                         }
                     }
+
+                    if buffer.len() >= batch_size {
+                        flush(&mut buffer);
+                        last_flush = Instant::now();
+                    }
                 }
-                Err(mpsc::RecvTimeoutError::Timeout) => {}
-                Err(_) => break,
-            }
 
-            if !buffer.is_empty() {
-                let output = buffer.join("\n");
-                write_output(&config_cloned, &output);
-                buffer.clear();
-            }
-        }
+                Ok(WorkerMsg::Shutdown) => {
+                    if !buffer.is_empty() {
+                        flush(&mut buffer);
+                    }
+                    break;
+                }
 
-        if !buffer.is_empty() {
-            let output = buffer.join("\n");
-            write_output(&config_cloned, &output);
+                Err(mpsc::RecvTimeoutError::Timeout) => {
+                    if !buffer.is_empty() {
+                        flush(&mut buffer);
+                    }
+                    last_flush = Instant::now();
+                }
+
+                Err(mpsc::RecvTimeoutError::Disconnected) => {
+                    if !buffer.is_empty() {
+                        flush(&mut buffer);
+                    }
+                    break;
+                }
+            }
         }
     });
 
-    BATCH_THREAD.set(Mutex::new(Some(handle))).ok();
+    let _ =BATCH_THREAD.set(Mutex::new(Some(handle)));
+}
+
+fn flush(buf: &mut Vec<LogEntry>) {
+    if buf.is_empty() {
+        return;
+    }
+
+    let Some(cfg_cell) = LOGGER_CONFIG.get() else {
+        buf.clear();
+        return;
+    };
+
+    let cfg: EnvConfig = cfg_cell.read().unwrap().clone();
+
+    for entry in buf.drain(..) {
+        match cfg.output.format {
+            OutputFormat::Text => format_log_text(&entry, &cfg),
+            OutputFormat::Json => format_log_json(&entry, &cfg),
+        }
+    }
 }
 
 pub fn cleanup_old_daily_logs(base_path: &str, max_backups: u8) {
@@ -169,4 +218,80 @@ pub fn validate_config(env_config: &EnvConfig) -> Result<(), String> {
     }
 
     Ok(())
+}
+
+pub fn write_output(config: &EnvConfig, message: &str) {
+    match config.output.target {
+        OutputTarget::Stdout => println!("{}", message),
+        OutputTarget::Stderr => eprintln!("{}", message),
+        OutputTarget::File => {
+            file_output(config, message);
+        }
+        OutputTarget::Null => { /* do nothing */ }
+    }
+}
+
+fn file_output(config: &EnvConfig, message: &str) {
+    if let Some(base_path) = &config.output.file_path {
+        let path = if config.output.rotate_daily.unwrap_or(false) {
+            cleanup_old_daily_logs(base_path, config.output.max_backups.unwrap_or(7));
+
+            let date_str = Utc::now().format("%Y-%m-%d").to_string();
+            let extension = std::path::Path::new(base_path)
+                .extension()
+                .and_then(|ext| ext.to_str())
+                .unwrap_or("log");
+
+            let stem = std::path::Path::new(base_path)
+                .file_stem()
+                .and_then(|stem| stem.to_str())
+                .unwrap_or("log");
+
+            format!("{}_{}.{}", stem, date_str, extension)
+        } else {
+            base_path.clone()
+        };
+
+        let rotate = should_rotate(&path, &config);
+        if rotate && !config.output.rotate_daily.unwrap_or(false) {
+            rotate_logs(&path, &config);
+        }
+
+        if let Ok(mut file) = std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&path)
+        {
+            if let Err(err) = writeln!(file, "{}", message) {
+                eprintln!(
+                    "[Logger] Failed to write to file {}: {}. Fallback to stderr.",
+                    path, err
+                );
+                eprintln!("{}", message);
+            }
+        } else {
+            eprintln!(
+                "[Logger] Failed to open log file: {}. Fallback to stderr.",
+                path
+            );
+            eprintln!("{}", message);
+        }
+    } else {
+        eprintln!("[Logger] No file path provided for log output.");
+    }
+}
+
+fn rotate_logs(path: &str, config: &EnvConfig) {
+    let max_backups = config.output.max_backups.unwrap_or(3);
+
+    for i in (1..=max_backups).rev() {
+        let src = format!("{}.{}", path, i - 1);
+        let dst = format!("{}.{}", path, i);
+
+        let src_actual = if i == 1 { path.to_string() } else { src };
+
+        if std::path::Path::new(&src_actual).exists() {
+            let _ = std::fs::rename(src_actual, dst);
+        }
+    }
 }
