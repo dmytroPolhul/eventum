@@ -57,7 +57,6 @@ describe('Input Sanitization', () => {
         expect(parsed.msg).toBeDefined();
       });
 
-      // Circular references should be replaced with "[Circular]"
       expect(output).toContain('[Circular]');
       
       done();
@@ -99,7 +98,6 @@ describe('Input Sanitization', () => {
         expect(() => JSON.parse(line)).not.toThrow();
       });
 
-      // NaN should be converted to "NaN" string
       expect(output).toContain('"NaN"');
       
       done();
@@ -184,7 +182,6 @@ describe('Input Sanitization', () => {
         expect(() => JSON.parse(line)).not.toThrow();
       });
 
-      // BigInt should be converted to string
       expect(output).toContain('123456789012345678901234567890');
       expect(output).toContain('9007199254740991');
       
@@ -235,7 +232,6 @@ describe('Input Sanitization', () => {
         expect(parsed.msg).toBeDefined();
       });
 
-      // Error should include name, message, stack
       expect(output).toContain('"name":"Error"');
       expect(output).toContain('"message":"Test error"');
       expect(output).toContain('"stack"');
@@ -303,7 +299,6 @@ describe('Input Sanitization', () => {
       const parsed = JSON.parse(lines[0]);
       expect(parsed.msg).toBeDefined();
       
-      // Verify all edge cases are handled
       expect(output).toContain('"nan":"NaN"');
       expect(output).toContain('"infinity":"Infinity"');
       expect(output).toContain('"negInfinity":"-Infinity"');
@@ -350,7 +345,6 @@ describe('Input Sanitization', () => {
       const output = fs.readFileSync(logFile, 'utf8');
       const lines = output.trim().split('\n').filter(Boolean);
       
-      // Should have 6 lines (undefined might be included or not depending on serialization)
       expect(lines.length).toBeGreaterThanOrEqual(5);
       
       lines.forEach((line) => {
@@ -403,7 +397,6 @@ describe('Input Sanitization', () => {
       
       expect(lines.length).toBe(6);
       
-      // All lines should be valid JSON
       lines.forEach((line) => {
         expect(() => JSON.parse(line)).not.toThrow();
       });

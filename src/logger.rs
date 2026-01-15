@@ -44,7 +44,13 @@ pub fn set_config(config: LoggerConfig) -> Option<EnvConfig> {
             }
         }
 
-        if SENDER.get().is_none() {
+        let needs_init = if let Some(sender_mutex) = SENDER.get() {
+            sender_mutex.lock().unwrap().is_none()
+        } else {
+            true
+        };
+
+        if needs_init {
             init_batching_logger(&env_config);
         }
 
@@ -63,9 +69,11 @@ fn log(entry: LogEntry) {
         return;
     }
 
-    if let Some(sender) = SENDER.get() {
-        let _ = sender.send(WorkerMsg::Entry(entry));
-        return;
+    if let Some(sender_mutex) = SENDER.get() {
+        if let Some(sender) = sender_mutex.lock().unwrap().as_ref() {
+            let _ = sender.send(WorkerMsg::Entry(entry));
+            return;
+        }
     }
 
     let Some(config_cell) = LOGGER_CONFIG.get() else {
@@ -141,17 +149,19 @@ pub fn fatal(message: Value) {
 
 #[napi]
 pub fn shutdown() {
-    if let Some(sender) = SENDER.get() {
-        let _ = sender.send(WorkerMsg::Shutdown);
+    if let Some(sender_mutex) = SENDER.get() {
+        if let Some(sender) = sender_mutex.lock().unwrap().as_ref() {
+            let _ = sender.send(WorkerMsg::Shutdown);
+        }
     }
 
-    let handle = if let Some(thread_mutex) = BATCH_THREAD.get() {
-        thread_mutex.lock().unwrap().take()
-    } else {
-        None
-    };
+    if let Some(thread_mutex) = BATCH_THREAD.get() {
+        if let Some(handle) = thread_mutex.lock().unwrap().take() {
+            let _ = handle.join();
+        }
+    }
 
-    if let Some(handle) = handle {
-        let _ = handle.join();
+    if let Some(sender_mutex) = SENDER.get() {
+        *sender_mutex.lock().unwrap() = None;
     }
 }

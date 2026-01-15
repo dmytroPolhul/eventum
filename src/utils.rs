@@ -58,13 +58,14 @@ pub fn init_batching_logger(config: &EnvConfig) {
         return;
     }
 
-    if SENDER.get().is_some() {
+    let sender_mutex = SENDER.get_or_init(|| Mutex::new(None));
+    
+    if sender_mutex.lock().unwrap().is_some() {
         return;
     }
 
     let (tx, rx) = mpsc::channel::<WorkerMsg>();
-    SENDER.set(tx).ok();
-
+    
     let flush_interval_ms = config.output.batch_interval_ms.unwrap_or(100);
     let flush_interval_ms = flush_interval_ms.max(1) as u64;
 
@@ -130,7 +131,10 @@ pub fn init_batching_logger(config: &EnvConfig) {
         }
     });
 
-    let _ =BATCH_THREAD.set(Mutex::new(Some(handle)));
+    *sender_mutex.lock().unwrap() = Some(tx);
+    
+    let thread_mutex = BATCH_THREAD.get_or_init(|| Mutex::new(None));
+    *thread_mutex.lock().unwrap() = Some(handle);
 }
 
 fn flush(buf: &mut Vec<LogEntry>) {
