@@ -49,7 +49,7 @@ impl MaskRule {
         }
 
         for re in &self.regex {
-            if re.is_match(key) {
+            if re.is_match(value) {
                 return self.keyword.to_string();
             }
         }
