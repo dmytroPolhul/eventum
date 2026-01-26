@@ -1,3 +1,5 @@
+![banner](eventum-banner.png)
+
 # Eventum
 
 > ⚠️ Eventum is currently in **alpha**.  
