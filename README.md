@@ -7,6 +7,9 @@
 > Prebuilt binaries are currently limited.  
 > If you encounter build issues, please open an issue.
 
+[![CI](https://github.com/dmytroPolhul/eventum/actions/workflows/ci.yml/badge.svg)](https://github.com/dmytroPolhul/eventum/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/eventum)](https://www.npmjs.com/package/eventum)
+[![npm downloads](https://img.shields.io/npm/dm/eventum)](https://www.npmjs.com/package/eventum)
 
 **High-performance, low-overhead logger for Node.js apps powered by Rust.**
 
