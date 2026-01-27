@@ -4,7 +4,19 @@ import fs from 'fs';
 const logFile = './test.sanitization.log';
 
 describe('Input Sanitization', () => {
-  beforeAll(() => {
+  afterEach(() => {
+    // Clean up after each test
+    try {
+      logger.shutdown();
+      if (fs.existsSync(logFile)) {
+        fs.unlinkSync(logFile);
+      }
+    } catch (err) {
+      // Ignore cleanup errors
+    }
+  });
+
+  test('should handle circular references without crashing', (done) => {
     const config = {
       prod: {
         output: {
@@ -16,23 +28,8 @@ describe('Input Sanitization', () => {
       }
     };
 
-    const ok = logger.setConfig(config);
-    if (!ok) {
-      throw new Error('Logger rejected config');
-    }
-  });
+    logger.setConfig(config);
 
-  afterAll(() => {
-    try {
-      if (fs.existsSync(logFile)) {
-        fs.unlinkSync(logFile);
-      }
-    } catch (err) {
-      // Ignore cleanup errors
-    }
-  });
-
-  test('should handle circular references without crashing', (done) => {
     const circular = { name: 'circular' };
     circular.self = circular;
     circular.nested = { parent: circular };
@@ -64,10 +61,6 @@ describe('Input Sanitization', () => {
   });
 
   test('should handle NaN values', (done) => {
-    if (fs.existsSync(logFile)) {
-      fs.unlinkSync(logFile);
-    }
-
     const config = {
       prod: {
         output: {
@@ -105,10 +98,6 @@ describe('Input Sanitization', () => {
   });
 
   test('should handle Infinity and -Infinity', (done) => {
-    if (fs.existsSync(logFile)) {
-      fs.unlinkSync(logFile);
-    }
-
     const config = {
       prod: {
         output: {
@@ -148,10 +137,6 @@ describe('Input Sanitization', () => {
   });
 
   test('should handle BigInt values', (done) => {
-    if (fs.existsSync(logFile)) {
-      fs.unlinkSync(logFile);
-    }
-
     const config = {
       prod: {
         output: {
@@ -190,10 +175,6 @@ describe('Input Sanitization', () => {
   });
 
   test('should handle Error objects', (done) => {
-    if (fs.existsSync(logFile)) {
-      fs.unlinkSync(logFile);
-    }
-
     const config = {
       prod: {
         output: {
@@ -243,10 +224,6 @@ describe('Input Sanitization', () => {
   });
 
   test('should handle complex nested structures with multiple edge cases', (done) => {
-    if (fs.existsSync(logFile)) {
-      fs.unlinkSync(logFile);
-    }
-
     const config = {
       prod: {
         output: {
@@ -314,10 +291,6 @@ describe('Input Sanitization', () => {
   });
 
   test('should handle primitives without modification', (done) => {
-    if (fs.existsSync(logFile)) {
-      fs.unlinkSync(logFile);
-    }
-
     const config = {
       prod: {
         output: {
@@ -356,10 +329,6 @@ describe('Input Sanitization', () => {
   });
 
   test('should never crash the process with any combination of bad inputs', (done) => {
-    if (fs.existsSync(logFile)) {
-      fs.unlinkSync(logFile);
-    }
-
     const config = {
       prod: {
         output: {

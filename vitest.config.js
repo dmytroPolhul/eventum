@@ -5,7 +5,8 @@ export default defineConfig({
     environment: "node",
     globals: true,
     testTimeout: 10000,
-    pool: 'threads',
+    pool: 'forks',
+    singleFork: true,
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "json-summary"],
