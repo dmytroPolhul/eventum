@@ -33,19 +33,19 @@ pub fn set_config(config: LoggerConfig) -> Option<EnvConfig> {
         }
 
         let cell = LOGGER_CONFIG.get_or_init(|| RwLock::new(env_config.clone()));
-        let mut current = cell.write().unwrap();
+        let mut current = cell.write().expect("Logger config lock poisoned");
         *current = env_config.clone();
 
         if env_config.output.masking.is_some() {
             if let Some(masking_cfg) = &env_config.output.masking {
                 let rules = MaskRule::from(masking_cfg.clone());
                 let cell = MASKING_RULES.get_or_init(|| RwLock::new(rules.clone()));
-                *cell.write().unwrap() = rules;
+                *cell.write().expect("Masking rules lock poisoned") = rules;
             }
         }
 
         let needs_init = if let Some(sender_mutex) = SENDER.get() {
-            sender_mutex.lock().unwrap().is_none()
+            sender_mutex.lock().expect("Sender mutex poisoned").is_none()
         } else {
             true
         };
@@ -70,7 +70,7 @@ fn log(entry: LogEntry) {
     }
 
     if let Some(sender_mutex) = SENDER.get() {
-        if let Some(sender) = sender_mutex.lock().unwrap().as_ref() {
+        if let Some(sender) = sender_mutex.lock().expect("Sender mutex poisoned").as_ref() {
             let _ = sender.send(WorkerMsg::Entry(entry));
             return;
         }
@@ -79,7 +79,7 @@ fn log(entry: LogEntry) {
     let Some(config_cell) = LOGGER_CONFIG.get() else {
         return;
     };
-    let config = config_cell.read().unwrap();
+    let config = config_cell.read().expect("Logger config lock poisoned");
 
     match config.output.format {
         OutputFormat::Text => format_log_text(&entry, &config),
@@ -150,18 +150,18 @@ pub fn fatal(message: Value) {
 #[napi]
 pub fn shutdown() {
     if let Some(sender_mutex) = SENDER.get() {
-        if let Some(sender) = sender_mutex.lock().unwrap().as_ref() {
+        if let Some(sender) = sender_mutex.lock().expect("Sender mutex poisoned").as_ref() {
             let _ = sender.send(WorkerMsg::Shutdown);
         }
     }
 
     if let Some(thread_mutex) = BATCH_THREAD.get() {
-        if let Some(handle) = thread_mutex.lock().unwrap().take() {
+        if let Some(handle) = thread_mutex.lock().expect("Batch thread mutex poisoned").take() {
             let _ = handle.join();
         }
     }
 
     if let Some(sender_mutex) = SENDER.get() {
-        *sender_mutex.lock().unwrap() = None;
+        *sender_mutex.lock().expect("Sender mutex poisoned") = None;
     }
 }

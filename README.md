@@ -38,22 +38,29 @@ npm install eventum
 yarn add eventum
 ```
 
+### Build Requirements
+
+The native module is built automatically during installation. Ensure you have:
+- **Node.js** 18.0.0 or higher
+- **Rust toolchain** (will be installed via `npm install` if missing)
+
 > Under the hood: compiled Rust binary with no runtime dependencies.
 
 ---
 
-## Example Usage
+## Quick Start
 
 ```ts
 import * as logger from 'eventum';
 
+// Configure the logger
 logger.setConfig({
   prod: {
     output: {
       color: true,
-      format: 0, // OutputFormat.Text
-      target: 1, // OutputTarget.Stderr
-      filePath: './test.log'
+      format: logger.OutputFormat.Json,
+      target: logger.OutputTarget.Stderr,
+      filePath: './logs/app.log'
     },
     fields: {
       time: true,
@@ -64,8 +71,19 @@ logger.setConfig({
   }
 });
 
-logger.debug({ id: '123', msg: 'Started' });
-logger.warn('This is a warning');
+// Log at different levels
+logger.trace('Detailed trace information');
+logger.debug({ userId: '123', action: 'login' });
+logger.info('User session started');
+logger.warn('Rate limit approaching threshold');
+logger.error({ error: 'Connection timeout', retries: 3 });
+logger.fatal('Critical system failure');
+
+// Gracefully flush logs before exit
+process.on('SIGINT', () => {
+  logger.shutdown();
+  process.exit(0);
+});
 ```
 
 ---
@@ -100,9 +118,9 @@ import * as logger from 'eventum';
 logger.setConfig({
   prod: {
     output: {
-      format: 0, // OutputFormat.Text
-      target: 1, // OutputTarget.Stderr
-      filePath: './app.log',
+      format: logger.OutputFormat.Json,
+      target: logger.OutputTarget.File,
+      filePath: './logs/app.log',
       masking: {
         keyword: '***',                              // Replacement text
         exact: ['password', 'token', 'apiKey'],      // Mask these field names
@@ -118,10 +136,11 @@ logger.info({
   username: 'alice',
   password: 'secret123',           // Will be masked
   token: 'Bearer abc.def.ghi',     // Will be masked
-  email: 'alice@example.com'       // Will be partially masked
+  email: 'alice@example.com',      // Will be masked (contains 'email')
+  userEmail: 'alice@work.com'      // Will be masked (contains 'email')
 });
 
-// Output: { username: 'alice', password: '***', token: '***', email: '***' }
+// Output: { username: 'alice', password: '***', token: '***', email: '***', userEmail: '***' }
 ```
 
 ### Masking Options
@@ -132,6 +151,39 @@ logger.info({
   (e.g. `user_email`, `billingEmail`, `creditCardNumber`)
 - **`regex`** — masks values matched by custom regex patterns
 - **`keyword`** — replacement string (default: `[MASKED]`)
+
+---
+
+## API Reference
+
+### Logging Functions
+
+```ts
+logger.trace(message: any): void    // Detailed debug information
+logger.debug(message: any): void    // Debug-level messages
+logger.info(message: any): void     // Informational messages
+logger.warn(message: any): void     // Warning messages
+logger.error(message: any): void    // Error messages
+logger.fatal(message: any): void    // Critical failures
+```
+
+All logging functions accept any type: strings, objects, arrays, or primitives. Complex objects are safely serialized (handles circular references, NaN, BigInt, etc.).
+
+### Configuration
+
+```ts
+logger.setConfig(config: LoggerConfig): EnvConfig | null
+```
+
+Sets the logger configuration. Returns the active config or `null` if invalid. Automatically selects `dev` or `prod` based on `NODE_ENV`.
+
+### Lifecycle
+
+```ts
+logger.shutdown(): void
+```
+
+Flushes all buffered logs and cleanly shuts down background threads. Call this before process exit to ensure no logs are lost.
 
 ---
 
@@ -173,8 +225,30 @@ interface EnvConfig {
 - `partial?: string[]` - Field names to mask partially
 - `regex?: string[]` - Regex patterns to match and mask
 
-### `LogLevel`
-- `Trace = 0`, `Debug = 1`, `Info = 2`, `Warn = 3`, `Error = 4`, `Fatal = 5`
+### Enums
+
+```ts
+enum LogLevel {
+  Trace = 0,
+  Debug = 1,
+  Info = 2,
+  Warn = 3,
+  Error = 4,
+  Fatal = 5
+}
+
+enum OutputFormat {
+  Text = 0,  // Human-readable text output
+  Json = 1   // JSON Lines format (one object per line)
+}
+
+enum OutputTarget {
+  Stdout = 0,  // Standard output
+  Stderr = 1,  // Standard error
+  File = 2,    // Log file (requires filePath)
+  Null = 3     // Discard logs (useful for benchmarking)
+}
+```
 
 </details>
 
@@ -203,17 +277,89 @@ MIT
 
 ## Roadmap
 
-- [ ] Async file writing support
-- [ ] External transport targets (sockets, Kafka, etc.)
+- [ ] Async file writing support (currently uses synchronous I/O)
+- [ ] Prebuilt binaries for common platforms (npm, arm64, x64)
+- [ ] External transport targets (HTTP, sockets, Kafka, etc.)
 - [ ] WebAssembly support
 - [ ] File compression on rotation
 
 ---
 
-## Reliability Notes
+## Known Limitations (Alpha)
 
-Eventum does not guarantee delivery of in-memory batched logs on process crash.
-Call `shutdown()` on graceful exit to flush buffered logs (may block briefly).
+- **File I/O is synchronous**: File writes may block the event loop on slow disks. Use batching to mitigate.
+- **No prebuilt binaries**: Native module builds locally during installation (requires Rust toolchain).
+- **Log loss on crash**: Buffered logs are lost if process crashes without calling `shutdown()`.
+- **Single config warning**: Logger only warns once if used before `setConfig()`, then silently discards logs.
+
+These limitations will be addressed in future releases.
+
+---
+
+## Best Practices
+
+### Graceful Shutdown
+
+Always call `shutdown()` before process exit to flush buffered logs:
+
+```ts
+import * as logger from 'eventum';
+
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+  logger.info('Received SIGTERM, shutting down gracefully');
+  logger.shutdown();
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  logger.info('Received SIGINT, shutting down gracefully');
+  logger.shutdown();
+  process.exit(0);
+});
+```
+
+### Scope-Based Logging
+
+Use the `scope` field to add context to your logs:
+
+```ts
+logger.info({ scope: 'AuthService', msg: 'User logged in', userId: '123' });
+logger.error({ scope: 'PaymentService', msg: 'Payment failed', orderId: '456' });
+
+// In JSON format, scope appears as a top-level field
+// In Text format, scope appears in brackets: [AuthService] User logged in
+```
+
+### Environment-Specific Configuration
+
+Configure different behavior for dev and prod:
+
+```ts
+logger.setConfig({
+  dev: {
+    output: {
+      format: logger.OutputFormat.Text,
+      target: logger.OutputTarget.Stdout,
+      color: true  // Colorful output for development
+    }
+  },
+  prod: {
+    output: {
+      format: logger.OutputFormat.Json,
+      target: logger.OutputTarget.File,
+      filePath: './logs/app.log',
+      batchEnabled: true,
+      batchSize: 100,
+      batchIntervalMs: 1000
+    }
+  }
+});
+```
+
+### Reliability Notes
+
+⚠️ Eventum does not guarantee delivery of in-memory batched logs on process crash. Always call `shutdown()` on graceful exit to flush buffered logs (may block briefly).
 
 ---
 

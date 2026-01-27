@@ -60,7 +60,7 @@ pub fn init_batching_logger(config: &EnvConfig) {
 
     let sender_mutex = SENDER.get_or_init(|| Mutex::new(None));
     
-    if sender_mutex.lock().unwrap().is_some() {
+    if sender_mutex.lock().expect("Sender mutex poisoned").is_some() {
         return;
     }
 
@@ -131,10 +131,10 @@ pub fn init_batching_logger(config: &EnvConfig) {
         }
     });
 
-    *sender_mutex.lock().unwrap() = Some(tx);
+    *sender_mutex.lock().expect("Sender mutex poisoned") = Some(tx);
     
     let thread_mutex = BATCH_THREAD.get_or_init(|| Mutex::new(None));
-    *thread_mutex.lock().unwrap() = Some(handle);
+    *thread_mutex.lock().expect("Batch thread mutex poisoned") = Some(handle);
 }
 
 fn flush(buf: &mut Vec<LogEntry>) {
@@ -147,7 +147,7 @@ fn flush(buf: &mut Vec<LogEntry>) {
         return;
     };
 
-    let cfg: EnvConfig = cfg_cell.read().unwrap().clone();
+    let cfg: EnvConfig = cfg_cell.read().expect("Logger config lock poisoned").clone();
 
     for entry in buf.drain(..) {
         match cfg.output.format {
@@ -205,7 +205,7 @@ pub fn should_rotate(path: &str, config: &EnvConfig) -> bool {
 
 pub fn mask_message_if_needed(msg: &Value) -> Value {
     if let Some(masking_cell) = MASKING_RULES.get() {
-        let rule = masking_cell.read().unwrap();
+        let rule = masking_cell.read().expect("Masking rules lock poisoned");
         rule.mask(msg)
     } else {
         msg.clone()
