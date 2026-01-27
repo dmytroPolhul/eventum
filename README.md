@@ -88,6 +88,35 @@ process.on('SIGINT', () => {
 
 ---
 
+## Colorized Output
+
+Eventum supports colorized output for better readability during development. Each log level is automatically colored:
+
+```ts
+logger.setConfig({
+  dev: {
+    output: {
+      format: logger.OutputFormat.Text,
+      target: logger.OutputTarget.Stdout,
+      color: true  // Enable colorization
+    }
+  }
+});
+
+logger.trace('Trace message');    // Bright black
+logger.debug('Debug message');    // Cyan
+logger.info('Info message');      // Green
+logger.warn('Warning message');   // Yellow
+logger.error('Error message');    // Red
+logger.fatal('Fatal message');    // Bold red
+```
+
+![Colorized Output Example](examples/images/colorized.png)
+
+> **Tip**: Colors are automatically disabled when `color: false` or when output is piped to a file.
+
+---
+
 ## Benchmark (1 million logs)
 > Benchmarks were executed locally on a development machine.
 > Results may vary depending on hardware and environment.
