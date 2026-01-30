@@ -1,16 +1,16 @@
 ![banner](eventum-banner.png)
 
 # Eventum
+[![CI](https://github.com/dmytroPolhul/eventum/actions/workflows/ci.yml/badge.svg)](https://github.com/dmytroPolhul/eventum/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/dmytroPolhul/eventum/graph/badge.svg?token=S1XRQ6FY1U)](https://codecov.io/gh/dmytroPolhul/eventum)
+[![npm version](https://img.shields.io/npm/v/eventum)](https://www.npmjs.com/package/eventum)
+[![npm downloads](https://img.shields.io/npm/dm/eventum)](https://www.npmjs.com/package/eventum)
 
 > ⚠️ Eventum is currently in **alpha**.  
 > APIs may change, and platform support is still evolving.  
 > Prebuilt binaries are currently limited.  
 > If you encounter build issues, please open an issue.
 
-[![CI](https://github.com/dmytroPolhul/eventum/actions/workflows/ci.yml/badge.svg)](https://github.com/dmytroPolhul/eventum/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/dmytroPolhul/eventum/branch/main/graph/badge.svg)](https://codecov.io/gh/dmytroPolhul/eventum)
-[![npm version](https://img.shields.io/npm/v/eventum)](https://www.npmjs.com/package/eventum)
-[![npm downloads](https://img.shields.io/npm/dm/eventum)](https://www.npmjs.com/package/eventum)
 
 **High-performance, low-overhead logger for Node.js apps powered by Rust.**
 
