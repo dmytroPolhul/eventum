@@ -9,7 +9,7 @@ export default defineConfig({
     singleFork: true,
     coverage: {
       provider: "v8",
-      reporter: ["text", "html", "json-summary"],
+      reporter: ["text", "html", "json-summary", "json"],
       reportsDirectory: "./coverage",
       exclude: [
         "**/node_modules/**",
