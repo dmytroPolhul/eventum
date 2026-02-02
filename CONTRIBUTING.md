@@ -47,7 +47,7 @@ Use the [bug report template](.github/ISSUE_TEMPLATE/bug.yaml) and include:
 
 ## Security Issues
 
-**Do not create public issues for security vulnerabilities.** Report privately via Discord: https://discord.gg/TxgXNV4B
+**Do not create public issues for security vulnerabilities.** Report privately via Discord: https://discord.gg/XW7whPJr
 
 See [Security Policy](.github/SECURITY.md) for details.
 

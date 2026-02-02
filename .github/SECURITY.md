@@ -6,7 +6,7 @@ If you discover a security vulnerability in **eventum**, we strongly encourage y
 
 Please **do not create a public issue**. Instead, contact us directly:
 
-- Discord: https://discord.gg/TxgXNV4B
+- Discord: https://discord.gg/XW7whPJr
 
 We will investigate and respond to your report as quickly as possible. Once the issue is resolved, we will publish a public disclosure if necessary.
 
