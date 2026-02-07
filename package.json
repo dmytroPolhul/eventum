@@ -39,13 +39,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "prebuild": "napi build --release --platform --arch",
     "build": "napi build --release",
     "prepublishOnly": "npm run build",
     "bench": "node benchmarks/compare-targets-bench.js"
   },
   "napi": {
-  "name": "eventum",
   "triples": {
     "defaults": false,
     "additional": [

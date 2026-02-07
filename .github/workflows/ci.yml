@@ -61,7 +61,7 @@ jobs:
           name: codecov-eventum
           fail_ci_if_error: false
 
-  prebuild:
+  build:
     if: github.event_name == 'workflow_call'
     name: Prebuild (${{ matrix.target }})
     runs-on: ${{ matrix.os }}
