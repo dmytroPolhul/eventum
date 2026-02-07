@@ -92,30 +92,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
         with:
-          node-version: 20
-          cache: npm
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-
-      - name: Setup Zig (musl only)
-        if: contains(matrix.target, 'musl')
-        uses: goto-bus-stop/setup-zig@v2
-        with:
-          version: 0.12.0
-
-      - run: npm ci
-
-      - name: Build native addon
-        run: npx napi build --release --target ${{ matrix.target }} ${{ contains(matrix.target, 'musl') && '--zig' || '' }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: bindings-${{ matrix.target }}
-          path: |
-            *.node
-            npm/**/*
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          name: codecov-eventum
+          fail_ci_if_error: false
