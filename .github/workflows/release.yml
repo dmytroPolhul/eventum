@@ -32,9 +32,11 @@ jobs:
         with:
           path: artifacts
 
-      - name: Pack artifacts into npm dirs
+      - name: List artifacts (debug)
+        run: ls -R artifacts
+
+      - name: Move bindings to npm package
         run: npx napi artifacts -d artifacts
 
-      - name: Publish (Trusted Publishing)
-        run: npm publish --access public
-        
+      - name: Publish to npm with provenance (OIDC)
+        run: npm publish --access public --provenance
