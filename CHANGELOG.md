@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [0.1.0-alpha.1] - 2026-02-07
+
+### Added
+- Automated CI prebuilds for macOS (x64/arm64), Windows (x64/arm64), and Linux (glibc/musl)
+- Trusted Publishing via GitHub Actions (OIDC) for secure npm releases
+- Cross-platform native binaries distribution for faster installs (no local Rust toolchain required)
+- Initial release workflow with reproducible builds
+
+### Changed
+- Release process standardized: versioning via PRs to `main` + tag-based publishing
+- CI pipeline split into test, coverage, and prebuild stages
+- Build tooling hardened for musl (Alpine) targets using Zig
+
+### Fixed
+- CI stability issues across multi-arch targets
+- Inconsistent build outputs between platforms
+- Minor packaging issues in npm artifacts layout
+
+### Documentation
+- Release process documented (versioning, tagging, CI/CD)
+- Clarified installation behavior with prebuilt binaries vs local builds
+
 ## [0.1.0-alpha.0] - 2026-01-13
 
 ### Added
@@ -46,5 +69,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security policy and code of conduct
 - GitHub issue templates for bug reports and feature requests
 
-[Unreleased]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.0...HEAD
+[Unreleased]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.1...HEAD
+[0.1.0-alpha.1]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.0...v0.1.0-alpha.1
 [0.1.0-alpha.0]: https://github.com/dmytroPolhul/eventum/releases/tag/v0.1.0-alpha.0
