@@ -53,3 +53,11 @@ yarn-debug.log*
 yarn-error.log*
 .npm/
 .yarn/
+
+npm/
+*.node
+darwin-*/
+linux-*/
+win32-*/
+x86_64-*/
+aarch64-*/

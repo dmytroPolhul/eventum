@@ -16,6 +16,16 @@
     "x64",
     "arm64"
   ],
+  "optionalDependencies": {
+    "eventum-darwin-arm64": "0.1.0-alpha.1",
+    "eventum-darwin-x64": "0.1.0-alpha.1",
+    "eventum-linux-arm64-gnu": "0.1.0-alpha.1",
+    "eventum-linux-arm64-musl": "0.1.0-alpha.1",
+    "eventum-linux-x64-gnu": "0.1.0-alpha.1",
+    "eventum-linux-x64-musl": "0.1.0-alpha.1",
+    "eventum-win32-arm64": "0.1.0-alpha.1",
+    "eventum-win32-x64": "0.1.0-alpha.1"
+  },
   "bugs": {
     "url": "https://github.com/dmytroPolhul/eventum/issues"
   },
@@ -44,6 +54,10 @@
     "bench": "node benchmarks/compare-targets-bench.js"
   },
   "napi": {
+    "name": "eventum",
+    "package": {
+      "name": "eventum"
+    },
     "triples": {
       "defaults": false,
       "additional": [
@@ -62,7 +76,6 @@
     "index.js",
     "index.cjs",
     "index.d.ts",
-    "index.node",
     "README.md",
     "LICENSE",
     "examples/images/"
