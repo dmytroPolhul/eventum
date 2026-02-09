@@ -101,42 +101,68 @@ jobs:
       - name: Create platform package
         shell: bash
         run: |
-          # Extract version from tag (v0.1.0-alpha.2 -> 0.1.0-alpha.2)
+          set -euo pipefail
+
           VERSION="${GITHUB_REF#refs/tags/v}"
           PKG_NAME="${{ matrix.platform }}"
-          mkdir -p "platform-packages/$PKG_NAME"
-          cp *.node "platform-packages/$PKG_NAME/"
-    
+
+          OUT_DIR="platform-packages/$PKG_NAME"
+          mkdir -p "$OUT_DIR"
+
+          # Copy native binary (.node)
+          cp ./*.node "$OUT_DIR/"
+
           case "${{ matrix.target }}" in
-            *"darwin"*)    OS="darwin" ;;
-            *"windows"*)   OS="win32" ;;
-            *"linux"*)     OS="linux" ;;
+            *"darwin"*)   OS="darwin" ;;
+            *"windows"*)  OS="win32" ;;
+            *"linux"*)    OS="linux" ;;
+            *)            echo "Unknown target OS: ${{ matrix.target }}"; exit 1 ;;
           esac
-          
+
           case "${{ matrix.target }}" in
-            x86_64*)     CPU="x64" ;;
-            aarch64*)    CPU="arm64" ;;
+            x86_64*)   CPU="x64" ;;
+            aarch64*)  CPU="arm64" ;;
+            *)         echo "Unknown target CPU: ${{ matrix.target }}"; exit 1 ;;
           esac
-          
-          cat > "platform-packages/$PKG_NAME/package.json" << EOF
+
+          # Minimal README to avoid "empty carrier package" flags
+          cat > "$OUT_DIR/README.md" << EOF
+          # $PKG_NAME
+
+          Prebuilt native binary for \`eventum\` ($OS/$CPU).
+
+          Not intended to be installed directly.
+          Install \`eventum\` instead.
+
+          Repository: https://github.com/dmytroPolhul/eventum
+          EOF
+
+          # Copy LICENSE if present
+          if [ -f "LICENSE" ]; then
+            cp "LICENSE" "$OUT_DIR/LICENSE"
+          fi
+
+          # Write package.json (no JS entrypoint)
+          cat > "$OUT_DIR/package.json" << EOF
           {
-          "name": "$PKG_NAME",
-          "version": "$VERSION",
-          "os": ["$OS"],
-          "cpu": ["$CPU"],
-          "main": "$(basename *.node)",
-          "files": ["*.node"],
-          "license": "MIT",
-          "description": "Eventum native binding for ${{ matrix.target }}",
-          "repository": {
-            "type": "git",
-            "url": "git+https://github.com/dmytroPolhul/eventum.git"
-            }
+            "name": "$PKG_NAME",
+            "version": "$VERSION",
+            "os": ["$OS"],
+            "cpu": ["$CPU"],
+            "files": ["*.node", "README.md", "LICENSE"],
+            "license": "MIT",
+            "description": "Eventum prebuilt native binding for ${{ matrix.target }}",
+            "repository": {
+              "type": "git",
+              "url": "git+https://github.com/dmytroPolhul/eventum.git"
+            },
+            "homepage": "https://github.com/dmytroPolhul/eventum#readme",
+            "keywords": ["eventum", "logger", "logging", "napi", "rust", "native", "bindings"]
           }
           EOF
 
           echo "Created platform package: $PKG_NAME"
-          ls -la "platform-packages/$PKG_NAME/"
+          ls -la "$OUT_DIR"
 
       - name: Upload platform package artifact
         uses: actions/upload-artifact@v4
@@ -174,7 +200,7 @@ jobs:
           if [ -f "$dir/package.json" ]; then
             echo "Publishing $(basename $dir)"
             cd "$dir"
-            npm publish --access public --provenance || echo "Failed to publish $(basename $dir)"
+            npm publish --access public --provenance
             cd - > /dev/null
           fi
         done
