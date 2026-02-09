@@ -7,6 +7,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-alpha.2] - 2026-02-09
+
+### Added
+- Multi-platform binary distribution - No longer requires Rust toolchain for installation
+  - Separate platform-specific packages for 8 platforms
+  - Automatic platform detection and binary loading
+  - Users only download binaries for their platform
+- Platform package support:
+  - `eventum-darwin-x64` (macOS Intel)
+  - `eventum-darwin-arm64` (macOS Apple Silicon)
+  - `eventum-win32-x64` (Windows x64)
+  - `eventum-win32-arm64` (Windows ARM)
+  - `eventum-linux-x64-gnu` (Linux x64 with glibc - Ubuntu, Debian, etc.)
+  - `eventum-linux-arm64-gnu` (Linux ARM with glibc)
+  - `eventum-linux-x64-musl` (Linux x64 with musl - Alpine, etc.)
+  - `eventum-linux-arm64-musl` (Linux ARM with musl)
+- Platform detection tests to verify correct binary selection
+- Improved musl vs glibc detection on Linux systems
+
+### Changed
+- Binary loading now tries platform-specific package first, falls back to local build for development
+- Removed bundled binaries from main package (now distributed via platform packages)
+- Updated release workflow to build and publish platform-specific packages
+
+### Fixed
+- Platform detection for Alpine Linux (musl) vs standard Linux (glibc)
+
+### Performance
+- Faster npm install times due to smaller package sizes
+
 
 ## [0.1.0-alpha.1] - 2026-02-07
 
@@ -69,6 +99,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security policy and code of conduct
 - GitHub issue templates for bug reports and feature requests
 
-[Unreleased]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.1...HEAD
+[Unreleased]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.2...HEAD
+[0.1.0-alpha.2]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.1...v0.1.0-alpha.2
 [0.1.0-alpha.1]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.0...v0.1.0-alpha.1
 [0.1.0-alpha.0]: https://github.com/dmytroPolhul/eventum/releases/tag/v0.1.0-alpha.0
