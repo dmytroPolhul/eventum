@@ -8,7 +8,6 @@
 
 > ⚠️ Eventum is currently in **alpha**.  
 > APIs may change, and platform support is still evolving.  
-> Prebuilt binaries are currently limited.  
 > If you encounter build issues, please open an issue.
 
 
@@ -41,14 +40,6 @@ npm install eventum
 # or
 yarn add eventum
 ```
-
-### Build Requirements
-
-The native module is built automatically during installation. Ensure you have:
-- **Node.js** 18.0.0 or higher
-- **Rust toolchain** (will be installed via `npm install` if missing)
-
-> Under the hood: compiled Rust binary with no runtime dependencies.
 
 ---
 
@@ -311,7 +302,7 @@ MIT
 ## Roadmap
 
 - [ ] Async file writing support (currently uses synchronous I/O)
-- [ ] Prebuilt binaries for common platforms (npm, arm64, x64)
+- [x] Prebuilt binaries for common platforms (npm, arm64, x64)
 - [ ] External transport targets (HTTP, sockets, Kafka, etc.)
 - [ ] WebAssembly support
 - [ ] File compression on rotation
@@ -321,7 +312,6 @@ MIT
 ## Known Limitations (Alpha)
 
 - **File I/O is synchronous**: File writes may block the event loop on slow disks. Use batching to mitigate.
-- **No prebuilt binaries**: Native module builds locally during installation (requires Rust toolchain).
 - **Log loss on crash**: Buffered logs are lost if process crashes without calling `shutdown()`.
 - **Single config warning**: Logger only warns once if used before `setConfig()`, then silently discards logs.
 
