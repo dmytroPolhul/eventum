@@ -184,7 +184,6 @@ jobs:
     - name: Publish main package
       run: |
         echo "Publishing main eventum package"
-        npm ci
         npm publish --access public --provenance
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
