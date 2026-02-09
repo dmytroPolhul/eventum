@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-alpha.3] - 2026-02-09
+
+### Fixed
+- Platform packages metadata and documentation
+  - Added README and license to platform-specific packages
+  - Improved npm packaging to avoid empty carrier packages
+- Release pipeline reliability for multi-platform binaries
+
 ## [0.1.0-alpha.2] - 2026-02-09
 
 ### Added
@@ -100,6 +108,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub issue templates for bug reports and feature requests
 
 [Unreleased]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.2...HEAD
+[0.1.0-alpha.3]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.2...v0.1.0-alpha.3
 [0.1.0-alpha.2]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.1...v0.1.0-alpha.2
 [0.1.0-alpha.1]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.0...v0.1.0-alpha.1
 [0.1.0-alpha.0]: https://github.com/dmytroPolhul/eventum/releases/tag/v0.1.0-alpha.0

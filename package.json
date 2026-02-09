@@ -1,6 +1,6 @@
 {
   "name": "eventum",
-  "version": "0.1.0-alpha.2",
+  "version": "0.1.0-alpha.3",
   "private": false,
   "description": "Ultra-fast, low-overhead logger for Node.js powered by Rust and napi-rs",
   "homepage": "https://github.com/dmytroPolhul/eventum#readme",
@@ -17,14 +17,14 @@
     "arm64"
   ],
   "optionalDependencies": {
-    "eventum-darwin-arm64": "0.1.0-alpha.2",
-    "eventum-darwin-x64": "0.1.0-alpha.2",
-    "eventum-linux-arm64-gnu": "0.1.0-alpha.2",
-    "eventum-linux-arm64-musl": "0.1.0-alpha.2",
-    "eventum-linux-x64-gnu": "0.1.0-alpha.2",
-    "eventum-linux-x64-musl": "0.1.0-alpha.2",
-    "eventum-win32-arm64": "0.1.0-alpha.2",
-    "eventum-win32-x64": "0.1.0-alpha.2"
+    "eventum-darwin-arm64": "0.1.0-alpha.3",
+    "eventum-darwin-x64": "0.1.0-alpha.3",
+    "eventum-linux-arm64-gnu": "0.1.0-alpha.3",
+    "eventum-linux-arm64-musl": "0.1.0-alpha.3",
+    "eventum-linux-x64-gnu": "0.1.0-alpha.3",
+    "eventum-linux-x64-musl": "0.1.0-alpha.3",
+    "eventum-win32-arm64": "0.1.0-alpha.3",
+    "eventum-win32-x64": "0.1.0-alpha.3"
   },
   "bugs": {
     "url": "https://github.com/dmytroPolhul/eventum/issues"
