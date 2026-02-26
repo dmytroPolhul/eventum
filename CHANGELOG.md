@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-alpha.7] - 2026-02-26
+
+### Fixed
+- Fixed `ERR_MODULE_NOT_FOUND` when importing the library by adding the missing `"main": "eventum.node"` property to the dynamically generated `package.json` for platform-specific packages.
+- Security: Bumped `rollup` dependency to fix a high-severity path traversal vulnerability via `npm audit fix`.
+
 ## [0.1.0-alpha.6] - 2026-02-26
 
 ### Added
@@ -116,7 +122,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security policy and code of conduct
 - GitHub issue templates for bug reports and feature requests
 
-[Unreleased]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.6...HEAD
+[Unreleased]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.7...HEAD
+[0.1.0-alpha.7]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.6...v0.1.0-alpha.7
 [0.1.0-alpha.6]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.5...v0.1.0-alpha.6
 [0.1.0-alpha.3]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.2...v0.1.0-alpha.3
 [0.1.0-alpha.2]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.1...v0.1.0-alpha.2
