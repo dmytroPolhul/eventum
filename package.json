@@ -1,30 +1,19 @@
 {
   "name": "eventum",
-  "version": "0.1.0-alpha.3",
+  "version": "0.1.0-alpha.4",
   "private": false,
   "description": "Ultra-fast, low-overhead logger for Node.js powered by Rust and napi-rs",
   "homepage": "https://github.com/dmytroPolhul/eventum#readme",
   "engines": {
     "node": ">=18.0.0"
   },
-  "os": [
-    "darwin",
-    "linux",
-    "win32"
-  ],
-  "cpu": [
-    "x64",
-    "arm64"
-  ],
   "optionalDependencies": {
-    "eventum-darwin-arm64": "0.1.0-alpha.3",
-    "eventum-darwin-x64": "0.1.0-alpha.3",
-    "eventum-linux-arm64-gnu": "0.1.0-alpha.3",
-    "eventum-linux-arm64-musl": "0.1.0-alpha.3",
-    "eventum-linux-x64-gnu": "0.1.0-alpha.3",
-    "eventum-linux-x64-musl": "0.1.0-alpha.3",
-    "eventum-win32-arm64": "0.1.0-alpha.3",
-    "eventum-win32-x64": "0.1.0-alpha.3"
+    "eventum-darwin-arm64": "0.1.0-alpha.4",
+    "eventum-darwin-x64": "0.1.0-alpha.4",
+    "eventum-linux-arm64-gnu": "0.1.0-alpha.4",
+    "eventum-linux-arm64-musl": "0.1.0-alpha.4",
+    "eventum-linux-x64-gnu": "0.1.0-alpha.4",
+    "eventum-linux-x64-musl": "0.1.0-alpha.4"
   },
   "bugs": {
     "url": "https://github.com/dmytroPolhul/eventum/issues"
@@ -51,7 +40,8 @@
     "test:coverage": "vitest run --coverage",
     "build": "napi build --release",
     "prepublishOnly": "npm run build",
-    "bench": "node benchmarks/compare-targets-bench.js"
+    "bench": "node benchmarks/compare-targets-bench.js",
+    "postinstall": "node scripts/postinstall.cjs"
   },
   "napi": {
     "name": "eventum",
@@ -65,8 +55,6 @@
         "aarch64-unknown-linux-gnu",
         "x86_64-unknown-linux-musl",
         "aarch64-unknown-linux-musl",
-        "x86_64-pc-windows-msvc",
-        "aarch64-pc-windows-msvc",
         "x86_64-apple-darwin",
         "aarch64-apple-darwin"
       ]
@@ -78,7 +66,12 @@
     "index.d.ts",
     "README.md",
     "LICENSE",
-    "examples/images/"
+    "scripts/",
+    "examples/images/",
+    "Cargo.toml",
+    "Cargo.lock",
+    "build.rs",
+    "src"
   ],
   "keywords": [
     "logger",

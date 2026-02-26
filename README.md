@@ -43,6 +43,24 @@ yarn add eventum
 
 ---
 
+## Windows support
+
+Prebuilt binaries for Windows are temporarily unavailable due to npm publishing restrictions.
+
+Windows users can build from source using:
+
+- Rust (stable toolchain)
+- Node.js >= 18
+- Visual Studio Build Tools
+
+Run:
+
+```bash
+npm install
+```
+
+---
+
 ## Quick Start
 
 ```ts
@@ -302,7 +320,7 @@ MIT
 ## Roadmap
 
 - [ ] Async file writing support (currently uses synchronous I/O)
-- [x] Prebuilt binaries for common platforms (npm, arm64, x64)
+- [x] Prebuilt binaries for common platforms (npm, arm64, x64) — *Windows temporarily requires manual build*
 - [ ] External transport targets (HTTP, sockets, Kafka, etc.)
 - [ ] WebAssembly support
 - [ ] File compression on rotation
@@ -311,6 +329,7 @@ MIT
 
 ## Known Limitations (Alpha)
 
+- **Windows support**: Prebuilt binaries are temporarily unavailable due to npm restrictions. Windows users must build from source.
 - **File I/O is synchronous**: File writes may block the event loop on slow disks. Use batching to mitigate.
 - **Log loss on crash**: Buffered logs are lost if process crashes without calling `shutdown()`.
 - **Single config warning**: Logger only warns once if used before `setConfig()`, then silently discards logs.

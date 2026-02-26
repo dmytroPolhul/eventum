@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-alpha.4] - 2026-02-26
+
+### Added
+- Automated fallback to source build for Windows (`win32`) via `postinstall` script
+- Added `Cargo.toml`, `Cargo.lock`, `build.rs`, and `src/` to published npm files to support building from source
+
+### Changed
+- Documentation: Updated README to clarify Windows installation limitations and roadmap
+
 ## [0.1.0-alpha.3] - 2026-02-09
 
 ### Fixed
@@ -107,7 +116,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security policy and code of conduct
 - GitHub issue templates for bug reports and feature requests
 
-[Unreleased]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.2...HEAD
+[Unreleased]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.4...HEAD
+[0.1.0-alpha.4]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.3...v0.1.0-alpha.4
 [0.1.0-alpha.3]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.2...v0.1.0-alpha.3
 [0.1.0-alpha.2]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.1...v0.1.0-alpha.2
 [0.1.0-alpha.1]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.0...v0.1.0-alpha.1
