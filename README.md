@@ -11,7 +11,7 @@
 > If you encounter build issues, please open an issue.
 
 
-**High-performance, low-overhead logger for Node.js apps powered by Rust.**
+**Infrastructure-grade, security-first logging for Node.js powered by Rust.**
 
 `Eventum` comes from the Latin *eventus* — “that which has happened”.
 In distributed systems, logs are not messages — they are recorded events with consequences.
