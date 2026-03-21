@@ -10,6 +10,7 @@ build.rs
 test/
 benchmarks/
 *.log
+examples/images/
 
 # GitHub files
 .github/
