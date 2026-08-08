@@ -13,7 +13,9 @@
     "eventum-linux-arm64-gnu": "0.1.0-alpha.7",
     "eventum-linux-arm64-musl": "0.1.0-alpha.7",
     "eventum-linux-x64-gnu": "0.1.0-alpha.7",
-    "eventum-linux-x64-musl": "0.1.0-alpha.7"
+    "eventum-linux-x64-musl": "0.1.0-alpha.7",
+    "eventum-win32-arm64": "0.1.0-alpha.7",
+    "eventum-win32-x64": "0.1.0-alpha.7"
   },
   "bugs": {
     "url": "https://github.com/dmytroPolhul/eventum/issues"
@@ -55,7 +57,9 @@
         "x86_64-unknown-linux-musl",
         "aarch64-unknown-linux-musl",
         "x86_64-apple-darwin",
-        "aarch64-apple-darwin"
+        "aarch64-apple-darwin",
+        "x86_64-pc-windows-msvc",
+        "aarch64-pc-windows-msvc"
       ]
     }
   },

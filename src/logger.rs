@@ -1,6 +1,6 @@
 use chrono::Utc;
+use napi::{Env, JsUnknown, Result};
 use napi_derive::napi;
-use serde_json::Value;
 use std::option::Option;
 use std::sync::RwLock;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -8,6 +8,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use crate::config::{BATCH_THREAD, LOGGER_CONFIG, MASKING_RULES, SENDER};
 use crate::format::{format_log_json, format_log_text};
 use crate::masking::MaskRule;
+use crate::sanitize::sanitize;
 use crate::types::{
     EnvConfig, FieldsConfig, LogEntry, LogLevel, LoggerConfig, OutputFormat, WorkerMsg,
 };
@@ -87,64 +88,50 @@ fn log(entry: LogEntry) {
     }
 }
 
-#[napi]
-pub fn trace(message: Value) {
-    log(LogEntry {
-        level: LogLevel::Trace,
+fn build_entry(env: &Env, level: LogLevel, message: JsUnknown) -> Result<LogEntry> {
+    let msg = sanitize(env, message)?;
+    Ok(LogEntry {
+        level,
         time: Utc::now().timestamp_millis(),
         pid: std::process::id(),
-        msg: message,
-    });
+        msg,
+    })
 }
 
 #[napi]
-pub fn info(message: Value) {
-    log(LogEntry {
-        level: LogLevel::Info,
-        time: Utc::now().timestamp_millis(),
-        pid: std::process::id(),
-        msg: message,
-    });
+pub fn trace(env: Env, message: JsUnknown) -> Result<()> {
+    log(build_entry(&env, LogLevel::Trace, message)?);
+    Ok(())
 }
 
 #[napi]
-pub fn debug(message: Value) {
-    log(LogEntry {
-        level: LogLevel::Debug,
-        time: Utc::now().timestamp_millis(),
-        pid: std::process::id(),
-        msg: message,
-    });
+pub fn info(env: Env, message: JsUnknown) -> Result<()> {
+    log(build_entry(&env, LogLevel::Info, message)?);
+    Ok(())
 }
 
 #[napi]
-pub fn warn(message: Value) {
-    log(LogEntry {
-        level: LogLevel::Warn,
-        time: Utc::now().timestamp_millis(),
-        pid: std::process::id(),
-        msg: message,
-    });
+pub fn debug(env: Env, message: JsUnknown) -> Result<()> {
+    log(build_entry(&env, LogLevel::Debug, message)?);
+    Ok(())
 }
 
 #[napi]
-pub fn error(message: Value) {
-    log(LogEntry {
-        level: LogLevel::Error,
-        time: Utc::now().timestamp_millis(),
-        pid: std::process::id(),
-        msg: message,
-    });
+pub fn warn(env: Env, message: JsUnknown) -> Result<()> {
+    log(build_entry(&env, LogLevel::Warn, message)?);
+    Ok(())
 }
 
 #[napi]
-pub fn fatal(message: Value) {
-    log(LogEntry {
-        level: LogLevel::Fatal,
-        time: Utc::now().timestamp_millis(),
-        pid: std::process::id(),
-        msg: message,
-    });
+pub fn error(env: Env, message: JsUnknown) -> Result<()> {
+    log(build_entry(&env, LogLevel::Error, message)?);
+    Ok(())
+}
+
+#[napi]
+pub fn fatal(env: Env, message: JsUnknown) -> Result<()> {
+    log(build_entry(&env, LogLevel::Fatal, message)?);
+    Ok(())
 }
 
 #[napi]
