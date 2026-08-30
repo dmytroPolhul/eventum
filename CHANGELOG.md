@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0-alpha.8] - 2026-08-30
+
+### Changed
+- Performance: `sanitize()` moved from JavaScript to Rust. Payload normalization now runs in the napi callback via a Rust walker over `JsUnknown`, eliminating a full JS-side object traversal per log call.
+  - `NaN` / `Infinity` / `-Infinity` serialize to their matching JSON strings
+  - `BigInt` and `Symbol` serialize to their string form, `Function` to `"[Function]"`
+  - `Error` expands to `{ name, message, stack, ...ownProps }`
+  - `Date` serializes to an ISO string, `RegExp` via `toString()`
+  - Circular references detected against ancestors instead of a JS `WeakSet`
+  - Integer JS numbers are preserved as JSON integers (`42`, not `42.0`)
+- `index.js` and `index.cjs` are now thin platform-loader shims; the JS `sanitize()` implementation was removed.
+
+### Added
+- Restored Windows prebuilt binaries: `eventum-win32-x64` and `eventum-win32-arm64` are published again and listed in `optionalDependencies`, so Windows installs no longer fall back to a source build.
+
 ## [0.1.0-alpha.7] - 2026-02-26
 
 ### Fixed
@@ -122,7 +137,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Security policy and code of conduct
 - GitHub issue templates for bug reports and feature requests
 
-[Unreleased]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.7...HEAD
+[Unreleased]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.8...HEAD
+[0.1.0-alpha.8]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.7...v0.1.0-alpha.8
 [0.1.0-alpha.7]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.6...v0.1.0-alpha.7
 [0.1.0-alpha.6]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.5...v0.1.0-alpha.6
 [0.1.0-alpha.3]: https://github.com/dmytroPolhul/eventum/compare/v0.1.0-alpha.2...v0.1.0-alpha.3
