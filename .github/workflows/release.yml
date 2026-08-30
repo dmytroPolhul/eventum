@@ -134,7 +134,7 @@ jobs:
           Not intended to be installed directly.
           Install \`eventum\` instead.
 
-          Repository: https://github.com/dmytroPolhul/eventum
+          Repository: https://github.com/${{ github.repository }}
           EOF
 
           # Copy LICENSE if present
@@ -155,9 +155,9 @@ jobs:
             "description": "Eventum prebuilt native binding for ${{ matrix.target }}",
             "repository": {
               "type": "git",
-              "url": "git+https://github.com/dmytroPolhul/eventum.git"
+              "url": "git+https://github.com/${{ github.repository }}.git"
             },
-            "homepage": "https://github.com/dmytroPolhul/eventum#readme",
+            "homepage": "https://github.com/${{ github.repository }}#readme",
             "keywords": ["eventum", "logger", "logging", "napi", "rust", "native", "bindings"]
           }
           EOF

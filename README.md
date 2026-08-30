@@ -1,8 +1,8 @@
 ![banner](eventum-banner.png)
 
 # Eventum
-[![CI](https://github.com/dmytroPolhul/eventum/actions/workflows/test.yml/badge.svg)](https://github.com/dmytroPolhul/eventum/actions/workflows/test.yml)
-[![codecov](https://codecov.io/gh/dmytroPolhul/eventum/graph/badge.svg?token=S1XRQ6FY1U)](https://codecov.io/gh/dmytroPolhul/eventum)
+[![CI](https://github.com/eventum-project/eventum/actions/workflows/test.yml/badge.svg)](https://github.com/eventum-project/eventum/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/eventum-project/eventum/graph/badge.svg?token=S1XRQ6FY1U)](https://codecov.io/gh/eventum-project/eventum)
 [![npm version](https://img.shields.io/npm/v/eventum)](https://www.npmjs.com/package/eventum)
 [![npm downloads](https://img.shields.io/npm/dm/eventum)](https://www.npmjs.com/package/eventum)
 
