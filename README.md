@@ -124,7 +124,7 @@ logger.error('Error message');    // Red
 logger.fatal('Fatal message');    // Bold red
 ```
 
-![Colorized Output Example](examples/images/colorized.png)
+![Colorized Output Example](https://raw.githubusercontent.com/eventum-project/eventum/main/examples/images/colorized.png)
 
 > **Tip**: Colors are automatically disabled when `color: false` or when output is piped to a file.
 
